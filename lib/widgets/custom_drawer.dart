@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rizesterapp/screens/login.dart';
+import 'package:rizesterapp/screens/login_screen.dart';
 import '../utils/responsive_config.dart';
 
 class CustomDrawer extends StatelessWidget {

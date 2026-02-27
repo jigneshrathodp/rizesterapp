@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rizesterapp/screens/login.dart';
+import 'package:rizesterapp/screens/login_screen.dart';
 import 'package:rizesterapp/widgets/widgets.dart';
 import 'package:device_preview/device_preview.dart';
 
