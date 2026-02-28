@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rizesterapp/screens/login_screen.dart';
+import 'package:rizesterapp/screens/Profile/login_screen.dart';
 import '../utils/responsive_config.dart';
 
 class CustomDrawer extends StatelessWidget {
@@ -192,14 +192,17 @@ class CustomDrawer extends StatelessWidget {
 
   List<DrawerItem> _getDefaultDrawerItems() {
     return [
-      const DrawerItem(icon: Icons.dashboard, title: 'Dashboard'),
-      const DrawerItem(icon: Icons.shopping_bag, title: 'Product'),
-      const DrawerItem(icon: Icons.category, title: 'Product Category'),
-      const DrawerItem(icon: Icons.add_shopping_cart, title: 'Order Now'),
-      const DrawerItem(icon: Icons.list_alt, title: 'Order List'),
-      const DrawerItem(icon: Icons.notifications, title: 'Notification'),
-      const DrawerItem(icon: Icons.campaign, title: 'Advertise'),
-      const DrawerItem(icon: Icons.settings, title: 'Setting'),
+      const DrawerItem(icon: Icons.dashboard, title: 'Dashboard'),//1
+      const DrawerItem(icon: Icons.shopping_bag, title: 'Product List'),//2
+      const DrawerItem(icon: Icons.category, title: 'Category List'),//3
+      const DrawerItem(icon: Icons.shopping_cart_rounded, title: 'Order List'),//4
+      const DrawerItem(icon: Icons.campaign, title: 'Advertise List'),//5
+      const DrawerItem(icon: Icons.notifications, title: 'Notifications'),//6
+      const DrawerItem(icon: Icons.post_add, title: 'Create Ad'),//7
+      const DrawerItem(icon: Icons.add_circle, title: 'Create Product'),//8
+      const DrawerItem(icon: Icons.category_outlined, title: 'Create Category'),//9
+      const DrawerItem(icon: Icons.person, title: 'Edit Profile'),//10
+      const DrawerItem(icon: Icons.lock, title: 'Change Password'),//11
     ];
   }
 }

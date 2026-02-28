@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../utils/responsive_config.dart';
-import '../widgets/widgets.dart';
+import '../../utils/responsive_config.dart';
+import '../../widgets/widgets.dart';
+import '../../widgets/custom_scaffold.dart';
+import '../../widgets/custom_form_simple.dart';
+import '../../widgets/custom_text.dart';
 
 class CreateProductScreen extends StatefulWidget {
   const CreateProductScreen({super.key});
@@ -28,7 +31,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return CustomScaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
         title: 'Create Product',
@@ -36,15 +39,14 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
         showNotifications: false,
         showProfile: false,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-              const SizedBox(height: 30),
+      body: CustomSingleChildScrollView(
+        padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
+        child: CustomForm(
+          formKey: _formKey,
+          child: CustomColumn(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomSpacer(height: ResponsiveConfig.responsiveHeight(context, 30)),
               DropdownButtonFormField<String>(
                 value: _categoryController.text.isEmpty ? null : _categoryController.text,
                 decoration: InputDecoration(
@@ -361,7 +363,6 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
             ],
           ),
         ),
-      ),
       ),
     );
   }

@@ -1,37 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../utils/responsive_config.dart';
-import '../widgets/widgets.dart';
+import '../../utils/responsive_config.dart';
+import '../../widgets/widgets.dart';
 
-class CreateProductScreenExample extends StatefulWidget {
-  const CreateProductScreenExample({super.key});
+class UpdateProductScreen extends StatefulWidget {
+  final Map<String, dynamic> productData;
+
+  const UpdateProductScreen({super.key, required this.productData});
 
   @override
-  State<CreateProductScreenExample> createState() => _CreateProductScreenExampleState();
+  State<UpdateProductScreen> createState() => _UpdateProductScreenState();
 }
 
-class _CreateProductScreenExampleState extends State<CreateProductScreenExample> {
+class _UpdateProductScreenState extends State<UpdateProductScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _categoryController = TextEditingController(text: 'Rings');
+  late final TextEditingController _categoryController;
   final List<String> _jewelleryCategories = ['Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Pendants', 'Chains', 'Bangles', 'Anklets'];
-  final _nameController = TextEditingController(text: 'Gold Diamond Ring');
-  final _skuController = TextEditingController(text: 'JWL-001');
-  final _quantityController = TextEditingController(text: '2');
-  final _weightGmController = TextEditingController(text: '5.2');
-  final _costPerGmController = TextEditingController(text: '4500');
-  final _totalCostController = TextEditingController(text: '46800');
-  final _sellingPriceController = TextEditingController(text: '52000');
-  String _selectedStatus = 'Active';
-  bool _forSale = true;
+  late final TextEditingController _nameController;
+  late final TextEditingController _skuController;
+  late final TextEditingController _quantityController;
+  late final TextEditingController _weightGmController;
+  late final TextEditingController _costPerGmController;
+  late final TextEditingController _totalCostController;
+  late final TextEditingController _sellingPriceController;
+  late String _selectedStatus;
+  late bool _forSale;
   String? _selectedImagePath;
   final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _categoryController = TextEditingController(text: widget.productData['category'] ?? '');
+    _nameController = TextEditingController(text: widget.productData['name'] ?? '');
+    _skuController = TextEditingController(text: widget.productData['sku'] ?? '');
+    _quantityController = TextEditingController(text: widget.productData['quantity']?.toString() ?? '');
+    _weightGmController = TextEditingController(text: widget.productData['weightGm']?.toString() ?? '');
+    _costPerGmController = TextEditingController(text: widget.productData['costPerGm']?.toString() ?? '');
+    _totalCostController = TextEditingController(text: widget.productData['totalCost']?.toString() ?? '');
+    _sellingPriceController = TextEditingController(text: widget.productData['sellingPrice']?.toString() ?? '');
+    _selectedStatus = widget.productData['status'] ?? 'Active';
+    _forSale = widget.productData['forSale'] ?? true;
+    _selectedImagePath = widget.productData['image'];
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
-        title: 'Create Product',
+        title: 'Update Product',
         onBackPressed: () => Navigator.pop(context),
         showNotifications: false,
         showProfile: false,
@@ -352,8 +370,8 @@ class _CreateProductScreenExampleState extends State<CreateProductScreenExample>
                       CustomSpacer(width: 16),
                       Expanded(
                         child: CustomButton(
-                          text: 'Create Product',
-                          onPressed: _createProduct,
+                          text: 'Update Product',
+                          onPressed: _updateProduct,
                           backgroundColor: Colors.black,
                           textColor: Colors.white,
                         ),
@@ -372,7 +390,7 @@ class _CreateProductScreenExampleState extends State<CreateProductScreenExample>
   }
 
   Widget _buildImagePlaceholder(BuildContext context) {
-    return Column(
+    return CustomColumn(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(
@@ -382,7 +400,7 @@ class _CreateProductScreenExampleState extends State<CreateProductScreenExample>
         ),
         CustomSpacer(height: 8),
         Text(
-          'Tap to add image',
+          'Tap to change image',
           style: AppTextStyles.getBody(context).copyWith(
             color: Colors.grey[600],
           ),
@@ -409,12 +427,12 @@ class _CreateProductScreenExampleState extends State<CreateProductScreenExample>
     }
   }
 
-  void _createProduct() {
+  void _updateProduct() {
     if (_formKey.currentState!.validate()) {
-      // Create product logic here
+      // Update product logic here
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Product created successfully!'),
+          content: Text('Product updated successfully!'),
           backgroundColor: Colors.green,
         ),
       );

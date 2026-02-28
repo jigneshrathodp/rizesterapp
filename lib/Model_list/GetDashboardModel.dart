@@ -22,10 +22,59 @@ class GetDashboardModel {
   }
 }
 
+class NotificationData {
+  int? id;
+  String? type;
+  String? status;
+  dynamic advertise;
+  Order? order;
+
+  NotificationData({this.id, this.type, this.status, this.advertise, this.order});
+
+  NotificationData.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    type = json['type'];
+    status = json['status'];
+    advertise = json['advertise'];
+    order = json['order'] != null ? new Order.fromJson(json['order']) : null;
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['id'] = this.id;
+    data['type'] = this.type;
+    data['status'] = this.status;
+    data['advertise'] = this.advertise;
+    if (this.order != null) {
+      data['order'] = this.order!.toJson();
+    }
+    return data;
+  }
+}
+
+class Order {
+  String? customerName;
+  String? email;
+
+  Order({this.customerName, this.email});
+
+  Order.fromJson(Map<String, dynamic> json) {
+    customerName = json['customer_name'];
+    email = json['email'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['customer_name'] = this.customerName;
+    data['email'] = this.email;
+    return data;
+  }
+}
+
 class Data {
   Stats? stats;
   Profile? profile;
-  List<Null>? notifications;
+  List<NotificationData>? notifications;
   Details? details;
 
   Data({this.stats, this.profile, this.notifications, this.details});
@@ -35,9 +84,9 @@ class Data {
     profile =
     json['profile'] != null ? new Profile.fromJson(json['profile']) : null;
     if (json['notifications'] != null) {
-      notifications = <Null>[];
+      notifications = <NotificationData>[];
       json['notifications'].forEach((v) {
-        notifications!.add(new Null.fromJson(v));
+        notifications!.add(new NotificationData.fromJson(v));
       });
     }
     details =
