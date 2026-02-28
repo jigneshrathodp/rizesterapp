@@ -1,40 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../controllers/change_password_controller.dart';
 import '../../utils/responsive_config.dart';
 import '../../widgets/widgets.dart';
 
-class ChangePasswordScreen extends StatefulWidget {
+class ChangePasswordScreen extends StatelessWidget {
   const ChangePasswordScreen({super.key});
 
   @override
-  State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
-}
-
-class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _oldPasswordController = TextEditingController();
-  final _newPasswordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
-
-  bool _oldPasswordVisible = false;
-  bool _newPasswordVisible = false;
-  bool _confirmPasswordVisible = false;
-  bool _isLoading = false;
-
-  @override
-  void dispose() {
-    _oldPasswordController.dispose();
-    _newPasswordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final controller = Get.put(ChangePasswordController());
+    
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
         title: 'Change Password',
-        onBackPressed: () => Navigator.pop(context),
+        onBackPressed: () => Get.back(),
         showNotifications: false,
         showProfile: false,
       ),
@@ -43,71 +24,67 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           Padding(
             padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
             child: Form(
-              key: _formKey,
+              key: controller.formKey,
               child: CustomColumn(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomSpacer(height: 30),
                   
                   // Old Password
-                  CustomTextField(
-                    controller: _oldPasswordController,
-                    labelText: 'Old Password',
-                    hintText: 'Enter your current password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    obscureText: !_oldPasswordVisible,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _oldPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  Obx(
+                    () => CustomTextField(
+                      controller: controller.oldPasswordController,
+                      labelText: 'Old Password',
+                      hintText: 'Enter your current password',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      obscureText: !controller.oldPasswordVisible.value,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          controller.oldPasswordVisible.value ? Icons.visibility : Icons.visibility_off,
+                        ),
+                        onPressed: controller.toggleOldPasswordVisibility,
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _oldPasswordVisible = !_oldPasswordVisible;
-                        });
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your old password';
+                        }
+                        if (value.length < 6) {
+                          return 'Password must be at least 6 characters';
+                        }
+                        return null;
                       },
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your old password';
-                      }
-                      if (value.length < 6) {
-                        return 'Password must be at least 6 characters';
-                      }
-                      return null;
-                    },
                   ),
                   
                   CustomSpacer(height: 16),
                   
                   // New Password
-                  CustomTextField(
-                    controller: _newPasswordController,
-                    labelText: 'New Password',
-                    hintText: 'Enter your new password',
-                    prefixIcon: const Icon(Icons.lock),
-                    obscureText: !_newPasswordVisible,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _newPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  Obx(
+                    () => CustomTextField(
+                      controller: controller.newPasswordController,
+                      labelText: 'New Password',
+                      hintText: 'Enter your new password',
+                      prefixIcon: const Icon(Icons.lock),
+                      obscureText: !controller.newPasswordVisible.value,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          controller.newPasswordVisible.value ? Icons.visibility : Icons.visibility_off,
+                        ),
+                        onPressed: controller.toggleNewPasswordVisibility,
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _newPasswordVisible = !_newPasswordVisible;
-                        });
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a new password';
+                        }
+                        if (value.length < 8) {
+                          return 'Password must be at least 8 characters';
+                        }
+                        if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)').hasMatch(value)) {
+                          return 'Password must contain uppercase, lowercase, and number';
+                        }
+                        return null;
                       },
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a new password';
-                      }
-                      if (value.length < 8) {
-                        return 'Password must be at least 8 characters';
-                      }
-                      if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)').hasMatch(value)) {
-                        return 'Password must contain uppercase, lowercase, and number';
-                      }
-                      return null;
-                    },
                   ),
                   
                   CustomSpacer(height: 16),
@@ -148,31 +125,29 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   CustomSpacer(height: 16),
                   
                   // Confirm Password
-                  CustomTextField(
-                    controller: _confirmPasswordController,
-                    labelText: 'Confirm Password',
-                    hintText: 'Confirm your new password',
-                    prefixIcon: const Icon(Icons.lock_clock),
-                    obscureText: !_confirmPasswordVisible,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _confirmPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  Obx(
+                    () => CustomTextField(
+                      controller: controller.confirmPasswordController,
+                      labelText: 'Confirm Password',
+                      hintText: 'Confirm your new password',
+                      prefixIcon: const Icon(Icons.lock_clock),
+                      obscureText: !controller.confirmPasswordVisible.value,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          controller.confirmPasswordVisible.value ? Icons.visibility : Icons.visibility_off,
+                        ),
+                        onPressed: controller.toggleConfirmPasswordVisibility,
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _confirmPasswordVisible = !_confirmPasswordVisible;
-                        });
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please confirm your new password';
+                        }
+                        if (value != controller.newPasswordController.text) {
+                          return 'Passwords do not match';
+                        }
+                        return null;
                       },
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please confirm your new password';
-                      }
-                      if (value != _newPasswordController.text) {
-                        return 'Passwords do not match';
-                      }
-                      return null;
-                    },
                   ),
                   
                   CustomSpacer(height: 32),
@@ -183,17 +158,19 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       Expanded(
                         child: CustomOutlineButton(
                           text: 'Cancel',
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () => Get.back(),
                         ),
                       ),
                       CustomSpacer(width: 16),
                       Expanded(
-                        child: CustomButton(
-                          text: 'Change Password',
-                          onPressed: _handleSubmit,
-                          backgroundColor: Colors.black,
-                          textColor: Colors.white,
-                          isLoading: _isLoading,
+                        child: Obx(
+                          () => CustomButton(
+                            text: 'Change Password',
+                            onPressed: controller.handleSubmit,
+                            backgroundColor: Colors.black,
+                            textColor: Colors.white,
+                            isLoading: controller.isLoading.value,
+                          ),
                         ),
                       ),
                     ],
@@ -203,42 +180,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 ],
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _handleSubmit() {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-
-      // Simulate API call
-      Future.delayed(const Duration(seconds: 2), () {
-        setState(() {
-          _isLoading = false;
-        });
-        
-        _showSuccessDialog();
-      });
-    }
-  }
-
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Success'),
-        content: const Text('Password changed successfully!'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
-            },
-            child: const Text('OK'),
           ),
         ],
       ),

@@ -193,6 +193,7 @@ class CustomDrawer extends StatelessWidget {
   List<DrawerItem> _getDefaultDrawerItems() {
     return [
       const DrawerItem(icon: Icons.dashboard, title: 'Dashboard'),//1
+      const DrawerItem(icon: Icons.shop, title: 'Order Now'),//1
       const DrawerItem(icon: Icons.shopping_bag, title: 'Product List'),//2
       const DrawerItem(icon: Icons.category, title: 'Category List'),//3
       const DrawerItem(icon: Icons.shopping_cart_rounded, title: 'Order List'),//4

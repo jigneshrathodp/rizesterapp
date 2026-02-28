@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../utils/responsive_config.dart';
 import '../../widgets/widgets.dart';
+import 'buy_now_screen.dart';
 
 class OrderNowScreen extends StatefulWidget {
   const OrderNowScreen({super.key});
@@ -341,7 +342,21 @@ class ProductDetailScreen extends StatelessWidget {
                 CustomButton(
                   text: "Buy Now",
                   onPressed: () {
-                    _showBuyNowDialog(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BuyNowScreen(
+                          product: {
+                            'id': product.id,
+                            'name': product.name,
+                            'category': 'Electronics',
+                            'weight': product.weight,
+                            'costPerGram': product.costPerGram,
+                            'imageUrl': product.imageUrl,
+                          },
+                        ),
+                      ),
+                    );
                   },
                   backgroundColor: Colors.black,
                   textColor: Colors.white,
@@ -386,46 +401,6 @@ class ProductDetailScreen extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  void _showBuyNowDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Purchase'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Product: ${product.name}'),
-            const SizedBox(height: 8),
-            Text('Total Cost: ₹${(product.weight * product.costPerGram).toStringAsFixed(2)}'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Order placed successfully!'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.black,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Confirm'),
-          ),
-        ],
-      ),
     );
   }
 }

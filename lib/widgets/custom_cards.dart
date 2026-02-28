@@ -216,34 +216,44 @@ class ProductCard extends StatelessWidget {
           ),
           SizedBox(height: ResponsiveConfig.spacingXs(context)),
           
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  category,
-                  style: AppTextStyles.getCaption(context),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: ResponsiveConfig.spacingXs(context),
-                  vertical: ResponsiveConfig.spacingXxs(context),
-                ),
-                decoration: BoxDecoration(
-                  color: status == 'Active' ? Colors.green : Colors.grey,
-                  borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 4)),
-                ),
-                child: Text(
-                  status,
-                  style: AppTextStyles.getSmall(context).copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Text(
+                      category,
+                      style: AppTextStyles.getCaption(context),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-              ),
-            ],
+                  SizedBox(width: ResponsiveConfig.spacingXs(context)),
+                  Flexible(
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: ResponsiveConfig.spacingXs(context),
+                        vertical: ResponsiveConfig.spacingXxs(context),
+                      ),
+                      decoration: BoxDecoration(
+                        color: status == 'Active' ? Colors.green : Colors.grey,
+                        borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 4)),
+                      ),
+                      child: Text(
+                        status,
+                        style: AppTextStyles.getSmall(context).copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
           SizedBox(height: ResponsiveConfig.spacingXs(context)),
           
@@ -289,39 +299,49 @@ class ProductCard extends StatelessWidget {
           // Action buttons
           if (onEdit != null || onDelete != null) ...[
             SizedBox(height: ResponsiveConfig.spacingSm(context)),
-            Row(
-              children: [
-                if (onEdit != null)
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: onEdit!,
-                      child: Text(
-                        'Edit',
-                        style: TextStyle(
-                          fontSize: ResponsiveConfig.responsiveFont(context, 14),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return Row(
+                  children: [
+                    if (onEdit != null)
+                      Expanded(
+                        flex: 1,
+                        child: OutlinedButton(
+                          onPressed: onEdit!,
+                          child: Text(
+                            'Edit',
+                            style: TextStyle(
+                              fontSize: ResponsiveConfig.responsiveFont(context, 14),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                if (onEdit != null && onDelete != null)
-                  SizedBox(width: ResponsiveConfig.spacingSm(context)),
-                if (onDelete != null)
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: onDelete!,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                      ),
-                      child: Text(
-                        'Delete',
-                        style: TextStyle(
-                          fontSize: ResponsiveConfig.responsiveFont(context, 14),
+                    if (onEdit != null && onDelete != null)
+                      SizedBox(width: ResponsiveConfig.spacingSm(context)),
+                    if (onDelete != null)
+                      Expanded(
+                        flex: 1,
+                        child: ElevatedButton(
+                          onPressed: onDelete!,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: Text(
+                            'Delete',
+                            style: TextStyle(
+                              fontSize: ResponsiveConfig.responsiveFont(context, 14),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-              ],
+                  ],
+                );
+              },
             ),
           ],
         ],

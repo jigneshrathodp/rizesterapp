@@ -1,39 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:get/get.dart';
+import '../../controllers/create_category_controller.dart';
 import '../../utils/responsive_config.dart';
 import '../../widgets/widgets.dart';
 
-class CreateCategoryScreen extends StatefulWidget {
+class CreateCategoryScreen extends StatelessWidget {
   const CreateCategoryScreen({super.key});
 
   @override
-  State<CreateCategoryScreen> createState() => _CreateCategoryScreenState();
-}
-
-class _CreateCategoryScreenState extends State<CreateCategoryScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _skuController = TextEditingController();
-  final _barcodeController = TextEditingController();
-
-  XFile? _selectedImage;
-  bool _isLoading = false;
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _skuController.dispose();
-    _barcodeController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final controller = Get.put(CreateCategoryController());
+    
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
         title: 'Create Category',
-        onBackPressed: () => Navigator.pop(context),
+        onBackPressed: () => Get.back(),
         showNotifications: false,
         showProfile: false,
       ),
@@ -42,60 +24,62 @@ class _CreateCategoryScreenState extends State<CreateCategoryScreen> {
           Padding(
             padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
             child: Form(
-              key: _formKey,
+              key: controller.formKey,
               child: CustomColumn(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomSpacer(height: 30),
                   
                   // Image Upload Section
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: Container(
-                      width: double.infinity,
-                      height: ResponsiveConfig.responsiveHeight(context, 200),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
-                        border: Border.all(color: Colors.grey[300]!),
-                      ),
-                      child: _selectedImage != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
-                              child: Stack(
-                                children: [
-                                  Image.asset(
-                                    _selectedImage!.path,
-                                    fit: BoxFit.cover,
-                                    width: double.infinity,
-                                    height: double.infinity,
-                                    errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(context),
-                                  ),
-                                  // Remove image button
-                                  Positioned(
-                                    top: 8,
-                                    right: 8,
-                                    child: GestureDetector(
-                                      onTap: _removeImage,
-                                      child: Container(
-                                        width: ResponsiveConfig.responsiveWidth(context, 32),
-                                        height: ResponsiveConfig.responsiveWidth(context, 32),
-                                        decoration: const BoxDecoration(
-                                          color: Colors.red,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(
-                                          Icons.close,
-                                          color: Colors.white,
-                                          size: 20,
+                  Obx(
+                    () => GestureDetector(
+                      onTap: controller.pickImage,
+                      child: Container(
+                        width: double.infinity,
+                        height: ResponsiveConfig.responsiveHeight(context, 200),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: controller.selectedImage.value != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
+                                child: Stack(
+                                  children: [
+                                    Image.asset(
+                                      controller.selectedImage.value!.path,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                      errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(context),
+                                    ),
+                                    // Remove image button
+                                    Positioned(
+                                      top: 8,
+                                      right: 8,
+                                      child: GestureDetector(
+                                        onTap: controller.removeImage,
+                                        child: Container(
+                                          width: ResponsiveConfig.responsiveWidth(context, 32),
+                                          height: ResponsiveConfig.responsiveWidth(context, 32),
+                                          decoration: const BoxDecoration(
+                                            color: Colors.red,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            Icons.close,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : _buildImagePlaceholder(context),
+                                  ],
+                                ),
+                              )
+                            : _buildImagePlaceholder(context),
+                      ),
                     ),
                   ),
                   
@@ -103,7 +87,7 @@ class _CreateCategoryScreenState extends State<CreateCategoryScreen> {
                   
                   // Category Name
                   CustomTextField(
-                    controller: _nameController,
+                    controller: controller.nameController,
                     labelText: 'Category Name',
                     hintText: 'Enter category name',
                     prefixIcon: const Icon(Icons.category),
@@ -122,7 +106,7 @@ class _CreateCategoryScreenState extends State<CreateCategoryScreen> {
                   
                   // SKU
                   CustomTextField(
-                    controller: _skuController,
+                    controller: controller.skuController,
                     labelText: 'SKU',
                     hintText: 'Enter SKU',
                     prefixIcon: const Icon(Icons.tag),
@@ -141,7 +125,7 @@ class _CreateCategoryScreenState extends State<CreateCategoryScreen> {
                   
                   // Barcode
                   CustomTextField(
-                    controller: _barcodeController,
+                    controller: controller.barcodeController,
                     labelText: 'Barcode',
                     hintText: 'Enter barcode',
                     prefixIcon: const Icon(Icons.qr_code_scanner),
@@ -164,17 +148,19 @@ class _CreateCategoryScreenState extends State<CreateCategoryScreen> {
                       Expanded(
                         child: CustomOutlineButton(
                           text: 'Cancel',
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () => Get.back(),
                         ),
                       ),
                       CustomSpacer(width: 16),
                       Expanded(
-                        child: CustomButton(
-                          text: 'Create Category',
-                          onPressed: _handleSubmit,
-                          backgroundColor: Colors.black,
-                          textColor: Colors.white,
-                          isLoading: _isLoading,
+                        child: Obx(
+                          () => CustomButton(
+                            text: 'Create Category',
+                            onPressed: controller.handleSubmit,
+                            backgroundColor: Colors.black,
+                            textColor: Colors.white,
+                            isLoading: controller.isLoading.value,
+                          ),
                         ),
                       ),
                     ],
@@ -207,90 +193,6 @@ class _CreateCategoryScreenState extends State<CreateCategoryScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Choose Image Source'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Camera'),
-              onTap: () async {
-                Navigator.of(context).pop();
-                final XFile? image = await picker.pickImage(source: ImageSource.camera);
-                if (image != null) {
-                  setState(() {
-                    _selectedImage = image;
-                  });
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Gallery'),
-              onTap: () async {
-                Navigator.of(context).pop();
-                final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-                if (image != null) {
-                  setState(() {
-                    _selectedImage = image;
-                  });
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _removeImage() {
-    setState(() {
-      _selectedImage = null;
-    });
-  }
-
-  void _handleSubmit() {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-
-      // Simulate API call
-      Future.delayed(const Duration(seconds: 2), () {
-        setState(() {
-          _isLoading = false;
-        });
-        
-        _showSuccessDialog();
-      });
-    }
-  }
-
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Success'),
-        content: const Text('Category created successfully!'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
-            },
-            child: const Text('OK'),
-          ),
-        ],
-      ),
     );
   }
 }

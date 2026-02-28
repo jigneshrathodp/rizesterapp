@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:rizesterapp/screens/Profile/login_screen.dart';
-// import 'package:rizesterapp/screens/Profile/login_screen.dart';
 import 'package:rizesterapp/widgets/widgets.dart';
 import 'package:device_preview/device_preview.dart';
-
 
 void main() {
   runApp(
@@ -11,11 +10,10 @@ void main() {
     //   enabled: true,
     //   builder: (context) => const MyApp(),
     // ),
-
-
     const MyApp(),
   );
 }
+
 class NoTransitionsBuilder extends PageTransitionsBuilder {
   @override
   Widget buildTransitions<T>(
@@ -28,17 +26,17 @@ class NoTransitionsBuilder extends PageTransitionsBuilder {
     return child;
   }
 }
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'RizesterApp',
       useInheritedMediaQuery: true,
 
       //DevicePreview
-
       // builder: DevicePreview.appBuilder,
       // locale: DevicePreview.locale(context),
 
@@ -67,6 +65,7 @@ class MyApp extends StatelessWidget {
         },
       ),
       debugShowCheckedModeBanner: false,
+      defaultTransition: Transition.noTransition,
     );
   }
 }

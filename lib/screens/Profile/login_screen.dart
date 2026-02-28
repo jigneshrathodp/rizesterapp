@@ -1,22 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../controllers/login_controller.dart';
 import '../../utils/responsive_config.dart';
 import '../../widgets/widgets.dart';
 import '../main_screen.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-
-class _LoginScreenState extends State<LoginScreen> {
-
-  bool isPasswordHidden = true;
-
-  @override
   Widget build(BuildContext context) {
+    final controller = Get.put(LoginController());
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
@@ -90,19 +84,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         GlassTextField(
                           hintText: "Email",
+                          controller: controller.emailController,
                         ),
 
                         CustomSpacer(height: size.height * 0.025),
 
-                        GlassTextField(
-                          hintText: "Password",
-                          obscureText: isPasswordHidden,
-                          showVisibilityToggle: true,
-                          onVisibilityToggle: () {
-                            setState(() {
-                              isPasswordHidden = !isPasswordHidden;
-                            });
-                          },
+                        Obx(
+                          () => GlassTextField(
+                            hintText: "Password",
+                            controller: controller.passwordController,
+                            obscureText: !controller.isPasswordVisible.value,
+                            showVisibilityToggle: true,
+                            onVisibilityToggle: controller.togglePasswordVisibility,
+                          ),
                         ),
 
                         CustomSpacer(height: size.height * 0.015),
@@ -119,16 +113,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         CustomSpacer(height: size.height * 0.04),
 
-                        CustomButton(
-                          text: "Login",
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute<void>(
-                                builder: (context) => const MainScreen(),
-                              ),
-                            );
-                          },
+                        Obx(
+                          () => CustomButton(
+                            text: "Login",
+                            onPressed: controller.login,
+                            isLoading: controller.isLoading.value,
+                          ),
                         ),
 
                         CustomSpacer(height: size.height * 0.03),

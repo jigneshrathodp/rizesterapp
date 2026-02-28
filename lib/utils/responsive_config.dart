@@ -34,7 +34,9 @@ class ResponsiveConfig {
   }
 
   static double responsiveFont(BuildContext context, double size) {
-    return size * getScale(context);
+    final scaledSize = size * getScale(context);
+    // Ensure font size is always positive and reasonable
+    return scaledSize > 0 ? scaledSize.clamp(8.0, 72.0) : size.clamp(8.0, 72.0);
   }
 
   static double responsiveRadius(BuildContext context, double radius) {

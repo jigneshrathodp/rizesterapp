@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:rizesterapp/screens/Product/list_product_screen.dart';
 import 'package:rizesterapp/screens/Advertise/list_ad_screen.dart';
 import 'package:rizesterapp/screens/Advertise/create_ad_screen.dart';
@@ -12,27 +13,55 @@ import 'package:rizesterapp/screens/Profile/changepassword_screen.dart';
 import 'package:rizesterapp/screens/Advertise/update_ads_screen.dart';
 import 'package:rizesterapp/screens/notification_screen.dart' as notification;
 import '../utils/responsive_config.dart';
-import '../widgets/custom_app_bar.dart';
-import '../widgets/custom_drawer.dart';
+import '../widgets/widgets.dart';
 import 'Category/list_category_screen.dart';
 import 'dashboard_screen.dart';
 import 'Order/order_list_screen.dart';
 import 'Order/order_now_screen.dart';
 
-
-class MainScreen extends StatefulWidget {
+class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  Widget build(BuildContext context) {
+    final controller = Get.put(MainScreenController());
+    
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: CustomAppBar(
+        logoAsset: 'assets/black.png',
+        onMenuPressed: () => controller.scaffoldKey.currentState?.openDrawer(),
+        onNotificationPressed: () {
+          // Handle notification press
+        },
+        onProfilePressed: () {
+          // Handle profile press
+        },
+      ),
+      drawer: SizedBox(
+        width: ResponsiveConfig.getWidth(context) * 0.6,
+        child: Obx(
+          () => CustomDrawer(
+            selectedIndex: controller.selectedIndex.value,
+            onItemTapped: controller.onItemTapped,
+            logoAsset: 'assets/white.png',
+          ),
+        ),
+      ),
+      body: Obx(
+        () => controller.screens[controller.selectedIndex.value],
+      ),
+    );
+  }
 }
 
-class _MainScreenState extends State<MainScreen> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  int _selectedIndex = 0;
+class MainScreenController extends GetxController {
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  final selectedIndex = 0.obs;
 
-  final List<Widget> _screens = [
+  final List<Widget> screens = [
     const DashboardScreen(),//1
+    const OrderNowScreen(),//1
     const ProductListScreen(),//2
     const CategoryListScreen(),//3
     const OrderListScreen(),//4
@@ -45,38 +74,8 @@ class _MainScreenState extends State<MainScreen> {
     const ChangePasswordScreen(),//11
   ];
 
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-    Navigator.pop(context);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: Colors.white,
-      appBar: CustomAppBar(
-        logoAsset: 'assets/black.png',
-        onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
-        onNotificationPressed: () {
-          // Handle notification press
-        },
-        onProfilePressed: () {
-          // Handle profile press
-        },
-      ),
-      drawer: SizedBox(
-        width: ResponsiveConfig.getWidth(context) * 0.6,
-        child: CustomDrawer(
-          selectedIndex: _selectedIndex,
-          onItemTapped: _onItemTapped,
-          logoAsset: 'assets/white.png',
-        ),
-      ),
-      body: _screens[_selectedIndex],
-    );
+  void onItemTapped(int index) {
+    selectedIndex.value = index;
+    Get.back();
   }
 }

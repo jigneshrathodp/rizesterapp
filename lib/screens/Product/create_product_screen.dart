@@ -1,369 +1,391 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:get/get.dart';
+import '../../controllers/create_product_controller.dart';
 import '../../utils/responsive_config.dart';
 import '../../widgets/widgets.dart';
-import '../../widgets/custom_scaffold.dart';
-import '../../widgets/custom_form_simple.dart';
-import '../../widgets/custom_text.dart';
 
-class CreateProductScreen extends StatefulWidget {
+class CreateProductScreen extends StatelessWidget {
   const CreateProductScreen({super.key});
 
   @override
-  State<CreateProductScreen> createState() => _CreateProductScreenState();
-}
-
-class _CreateProductScreenState extends State<CreateProductScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _categoryController = TextEditingController();
-  final List<String> _jewelleryCategories = ['Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Pendants', 'Chains', 'Bangles', 'Anklets'];
-  final _nameController = TextEditingController();
-  final _skuController = TextEditingController();
-  final _quantityController = TextEditingController();
-  final _weightGmController = TextEditingController();
-  final _costPerGmController = TextEditingController();
-  final _totalCostController = TextEditingController();
-  final _sellingPriceController = TextEditingController();
-  String _selectedStatus = 'Active';
-  bool _forSale = true;
-  String? _selectedImagePath;
-  final ImagePicker _picker = ImagePicker();
-
-  @override
   Widget build(BuildContext context) {
-    return CustomScaffold(
+    final controller = Get.put(CreateProductController());
+    
+    return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
         title: 'Create Product',
-        onBackPressed: () => Navigator.pop(context),
+        onBackPressed: () => Get.back(),
         showNotifications: false,
         showProfile: false,
       ),
-      body: CustomSingleChildScrollView(
-        padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
-        child: CustomForm(
-          formKey: _formKey,
-          child: CustomColumn(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomSpacer(height: ResponsiveConfig.responsiveHeight(context, 30)),
-              DropdownButtonFormField<String>(
-                value: _categoryController.text.isEmpty ? null : _categoryController.text,
-                decoration: InputDecoration(
-                  labelText: 'Category',
-                  hintText: 'Select category',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                items: _jewelleryCategories.map((String category) {
-                  return DropdownMenuItem<String>(
-                    value: category,
-                    child: Text(category),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _categoryController.text = newValue!;
-                  });
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please select category';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Product Name',
-                  hintText: 'Enter product name',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter product name';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _skuController,
-                decoration: InputDecoration(
-                  labelText: 'SKU',
-                  hintText: 'Enter SKU',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter SKU';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              Row(
+      body: CustomScrollWidget(
+        children: [
+          Padding(
+            padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
+            child: Form(
+              key: controller.formKey,
+              child: CustomColumn(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _quantityController,
-                      decoration: InputDecoration(
-                        labelText: 'Quantity',
-                        hintText: 'Enter quantity',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                  CustomSpacer(height: 30),
+                  
+                  // Image Upload Section
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final maxHeight = ResponsiveConfig.responsiveHeight(context, 200);
+                      final minHeight = ResponsiveConfig.responsiveHeight(context, 120);
+                      
+                      return ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: minHeight,
+                          maxHeight: maxHeight,
                         ),
-                      ),
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter quantity';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _weightGmController,
-                      decoration: InputDecoration(
-                        labelText: 'Weight (gm)',
-                        hintText: 'Enter weight in grams',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter weight';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _costPerGmController,
-                      decoration: InputDecoration(
-                        labelText: 'Cost per gm (₹)',
-                        hintText: 'Enter cost per gram',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        prefixText: '₹',
-                      ),
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter cost per gram';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _totalCostController,
-                      decoration: InputDecoration(
-                        labelText: 'Total Cost (₹)',
-                        hintText: 'Enter total cost',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        prefixText: '₹',
-                      ),
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter total cost';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _sellingPriceController,
-                decoration: InputDecoration(
-                  labelText: 'Selling Price (₹)',
-                  hintText: 'Enter selling price',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  prefixText: '₹',
-                ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter selling price';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: CheckboxListTile(
-                      title: const Text('For Sale'),
-                      value: _forSale,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          _forSale = value ?? false;
-                        });
-                      },
-                      controlAffinity: ListTileControlAffinity.leading,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _selectedStatus,
-                decoration: InputDecoration(
-                  labelText: 'Status',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                items: const ['Active', 'Inactive'].map((String status) {
-                  return DropdownMenuItem<String>(
-                    value: status,
-                    child: Text(status),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedStatus = newValue!;
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Product Image',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () async {
-                  final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-                  if (image != null) {
-                    setState(() {
-                      _selectedImagePath = image.path;
-                    });
-                  }
-                },
-                child: Container(
-                  height: 150,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: _selectedImagePath != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.asset(
-                            _selectedImagePath!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Icon(
-                                Icons.image,
-                                size: 40,
-                                color: Colors.grey,
-                              );
-                            },
-                          ),
-                        )
-                      : const Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.cloud_upload,
-                              size: 40,
-                              color: Colors.grey,
+                        child: Obx(
+                          () => GestureDetector(
+                            onTap: controller.pickImage,
+                            child: Container(
+                              width: double.infinity,
+                              constraints: BoxConstraints(
+                                minHeight: minHeight,
+                                maxHeight: maxHeight,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
+                                border: Border.all(color: Colors.grey[300]!),
+                              ),
+                              child: controller.selectedImage.value != null
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
+                                      child: Stack(
+                                        children: [
+                                          Image.asset(
+                                            controller.selectedImage.value!.path,
+                                            fit: BoxFit.cover,
+                                            width: double.infinity,
+                                            height: double.infinity,
+                                            errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(context),
+                                          ),
+                                          // Remove image button
+                                          Positioned(
+                                            top: 8,
+                                            right: 8,
+                                            child: GestureDetector(
+                                              onTap: controller.removeImage,
+                                              child: Container(
+                                                width: ResponsiveConfig.responsiveWidth(context, 32),
+                                                height: ResponsiveConfig.responsiveWidth(context, 32),
+                                                decoration: const BoxDecoration(
+                                                  color: Colors.red,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: const Icon(
+                                                  Icons.close,
+                                                  color: Colors.white,
+                                                  size: 20,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  : _buildImagePlaceholder(context),
                             ),
-                            SizedBox(height: 8),
-                            Text(
-                              'Click to upload image',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 14,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  
+                  CustomSpacer(height: 24),
+                  
+                  // Category
+                  CustomDropdownButtonFormField<String>(
+                    value: controller.categoryController.text.isEmpty ? null : controller.categoryController.text,
+                    labelText: 'Category',
+                    hintText: 'Select category',
+                    items: controller.jewelleryCategories.map((String category) {
+                      return DropdownMenuItem<String>(
+                        value: category,
+                        child: Text(category),
+                      );
+                    }).toList(),
+                    onChanged: controller.updateCategory,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select category';
+                      }
+                      return null;
+                    },
+                  ),
+                  
+                  CustomSpacer(height: 16),
+                  
+                  // Product Name
+                  CustomTextField(
+                    controller: controller.nameController,
+                    labelText: 'Product Name',
+                    hintText: 'Enter product name',
+                    prefixIcon: const Icon(Icons.inventory_2),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter product name';
+                      }
+                      if (value.length < 2) {
+                        return 'Name must be at least 2 characters';
+                      }
+                      return null;
+                    },
+                  ),
+                  
+                  CustomSpacer(height: 16),
+                  
+                  // SKU
+                  CustomTextField(
+                    controller: controller.skuController,
+                    labelText: 'SKU',
+                    hintText: 'Enter SKU',
+                    prefixIcon: const Icon(Icons.tag),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter SKU';
+                      }
+                      if (value.length < 3) {
+                        return 'SKU must be at least 3 characters';
+                      }
+                      return null;
+                    },
+                  ),
+                  
+                  CustomSpacer(height: 16),
+                  
+                  // Quantity and Weight Row
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      return IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: CustomTextField(
+                                controller: controller.quantityController,
+                                labelText: 'Quantity',
+                                hintText: 'Enter quantity',
+                                prefixIcon: const Icon(Icons.add_shopping_cart),
+                                keyboardType: TextInputType.number,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter quantity';
+                                  }
+                                  if (int.tryParse(value) == null || int.parse(value) < 0) {
+                                    return 'Please enter valid quantity';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                            CustomSpacer(width: 16),
+                            Expanded(
+                              flex: 1,
+                              child: CustomTextField(
+                                controller: controller.weightGmController,
+                                labelText: 'Weight (gm)',
+                                hintText: 'Enter weight in grams',
+                                prefixIcon: const Icon(Icons.scale),
+                                keyboardType: TextInputType.number,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter weight';
+                                  }
+                                  if (double.tryParse(value) == null || double.parse(value) <= 0) {
+                                    return 'Please enter valid weight';
+                                  }
+                                  return null;
+                                },
                               ),
                             ),
                           ],
                         ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        side: const BorderSide(color: Colors.grey),
-                      ),
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(color: Colors.black),
-                      ),
-                    ),
+                      );
+                    },
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          // Handle form submission
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Product created successfully!'),
-                              backgroundColor: Colors.green,
+                  
+                  CustomSpacer(height: 16),
+                  
+                  // Cost per gram and Total Cost Row
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      return IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: CustomTextField(
+                                controller: controller.costPerGmController,
+                                labelText: 'Cost per gm (₹)',
+                                hintText: '₹Enter cost per gram',
+                                prefixIcon: const Icon(Icons.currency_rupee),
+                                keyboardType: TextInputType.number,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter cost per gram';
+                                  }
+                                  if (double.tryParse(value.replaceAll('₹', '')) == null || double.parse(value.replaceAll('₹', '')) <= 0) {
+                                    return 'Please enter valid cost';
+                                  }
+                                  return null;
+                                },
+                              ),
                             ),
-                          );
-                          Navigator.pop(context);
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                            CustomSpacer(width: 16),
+                            Expanded(
+                              flex: 1,
+                              child: CustomTextField(
+                                controller: controller.totalCostController,
+                                labelText: 'Total Cost (₹)',
+                                hintText: '₹Enter total cost',
+                                prefixIcon: const Icon(Icons.currency_rupee),
+                                keyboardType: TextInputType.number,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter total cost';
+                                  }
+                                  if (double.tryParse(value.replaceAll('₹', '')) == null || double.parse(value.replaceAll('₹', '')) <= 0) {
+                                    return 'Please enter valid total cost';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  
+                  CustomSpacer(height: 16),
+                  
+                  // Selling Price
+                  CustomTextField(
+                    controller: controller.sellingPriceController,
+                    labelText: 'Selling Price (₹)',
+                    hintText: '₹Enter selling price',
+                    prefixIcon: const Icon(Icons.currency_rupee),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter selling price';
+                      }
+                      if (double.tryParse(value.replaceAll('₹', '')) == null || double.parse(value.replaceAll('₹', '')) <= 0) {
+                        return 'Please enter valid selling price';
+                      }
+                      return null;
+                    },
+                  ),
+                  
+                  CustomSpacer(height: 16),
+                  
+                  // For Sale Checkbox
+                  CustomRow(
+                    children: [
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Obx(
+                              () => CustomCheckbox(
+                                value: controller.forSale.value,
+                                onChanged: controller.toggleForSale,
+                              ),
+                            ),
+                            CustomSpacer(width: 8),
+                            Text(
+                              'For Sale',
+                              style: TextStyle(
+                                fontSize: ResponsiveConfig.responsiveFont(context, 16),
+                                color: Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      child: const Text('Create Product'),
+                    ],
+                  ),
+                  
+                  CustomSpacer(height: 16),
+                  
+                  // Status
+                  Obx(
+                    () => CustomDropdownButtonFormField<String>(
+                      value: controller.selectedStatus.value,
+                      labelText: 'Status',
+                      hintText: 'Select status',
+                      items: const ['Active', 'Inactive'].map((String status) {
+                        return DropdownMenuItem<String>(
+                          value: status,
+                          child: Text(status),
+                        );
+                      }).toList(),
+                      onChanged: controller.updateStatus,
                     ),
                   ),
+                  
+                  CustomSpacer(height: 32),
+                  
+                  // Action Buttons
+                  CustomRow(
+                    children: [
+                      Expanded(
+                        child: CustomOutlineButton(
+                          text: 'Cancel',
+                          onPressed: () => Get.back(),
+                        ),
+                      ),
+                      CustomSpacer(width: 16),
+                      Expanded(
+                        child: Obx(
+                          () => CustomButton(
+                            text: 'Create Product',
+                            onPressed: controller.handleSubmit,
+                            backgroundColor: Colors.black,
+                            textColor: Colors.white,
+                            isLoading: controller.isLoading.value,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  CustomSpacer(height: 32),
                 ],
               ),
-            ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImagePlaceholder(BuildContext context) {
+    return CustomColumn(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.cloud_upload,
+          size: ResponsiveConfig.responsiveFont(context, 48),
+          color: Colors.grey[400],
+        ),
+        CustomSpacer(height: 8),
+        Text(
+          'Tap to upload product image',
+          style: AppTextStyles.getBody(context).copyWith(
+            color: Colors.grey[600],
           ),
         ),
-      ),
+      ],
     );
   }
 }

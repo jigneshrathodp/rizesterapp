@@ -154,6 +154,25 @@ class CustomContainer extends StatelessWidget {
   }
 }
 
+class CustomSingleChildScrollView extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry? padding;
+
+  const CustomSingleChildScrollView({
+    super.key,
+    required this.child,
+    this.padding,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: padding,
+      child: child,
+    );
+  }
+}
+
 class CustomSpacer extends StatelessWidget {
   final double? height;
   final double? width;
@@ -314,14 +333,18 @@ class CustomRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: mainAxisAlignment,
-      crossAxisAlignment: crossAxisAlignment,
-      mainAxisSize: mainAxisSize,
-      textBaseline: textBaseline,
-      verticalDirection: verticalDirection,
-      textDirection: textDirection,
-      children: children,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Row(
+          mainAxisAlignment: mainAxisAlignment,
+          crossAxisAlignment: crossAxisAlignment,
+          mainAxisSize: mainAxisSize,
+          textBaseline: textBaseline,
+          verticalDirection: verticalDirection,
+          textDirection: textDirection,
+          children: children,
+        );
+      },
     );
   }
 }

@@ -36,59 +36,69 @@ class CustomButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final buttonHeight = height ?? ResponsiveConfig.responsiveHeight(context, 55);
-    final buttonWidth = width ?? double.infinity;
+    final buttonWidth = width;
     final radius = borderRadius ?? BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 14));
 
-    return SizedBox(
-      width: buttonWidth,
-      height: buttonHeight,
-      child: ElevatedButton(
-        onPressed: isDisabled || isLoading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor ?? Colors.white,
-          foregroundColor: textColor ?? Colors.black,
-          shape: RoundedRectangleBorder(borderRadius: radius),
-          padding: padding ?? EdgeInsets.symmetric(
-            horizontal: ResponsiveConfig.responsivePadding(context, 24),
-            vertical: ResponsiveConfig.responsivePadding(context, 16),
-          ),
-          elevation: 2,
-          shadowColor: Colors.black.withOpacity(0.1),
+    Widget buttonChild = ElevatedButton(
+      onPressed: isDisabled || isLoading ? null : onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: backgroundColor ?? Colors.white,
+        foregroundColor: textColor ?? Colors.black,
+        shape: RoundedRectangleBorder(borderRadius: radius),
+        padding: padding ?? EdgeInsets.symmetric(
+          horizontal: ResponsiveConfig.responsivePadding(context, 24),
+          vertical: ResponsiveConfig.responsivePadding(context, 16),
         ),
-        child: isLoading
-            ? SizedBox(
-                width: ResponsiveConfig.responsiveWidth(context, 20),
-                height: ResponsiveConfig.responsiveWidth(context, 20),
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    textColor ?? Colors.black,
-                  ),
+        elevation: 2,
+        shadowColor: Colors.black.withOpacity(0.1),
+      ),
+      child: isLoading
+          ? SizedBox(
+              width: ResponsiveConfig.responsiveWidth(context, 20),
+              height: ResponsiveConfig.responsiveWidth(context, 20),
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  textColor ?? Colors.black,
                 ),
-              )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (icon != null) ...[
-                    icon!,
-                    SizedBox(width: ResponsiveConfig.spacingXs(context)),
-                  ],
-                  Flexible(
-                    child: Text(
-                      text,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: fontSize ?? ResponsiveConfig.responsiveFont(context, 18),
-                        fontWeight: fontWeight ?? FontWeight.bold,
-                        color: textColor ?? Colors.black,
-                      ),
+              ),
+            )
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (icon != null) ...[
+                  icon!,
+                  SizedBox(width: ResponsiveConfig.spacingXs(context)),
+                ],
+                Flexible(
+                  child: Text(
+                    text,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: fontSize ?? ResponsiveConfig.responsiveFont(context, 18),
+                      fontWeight: fontWeight ?? FontWeight.bold,
+                      color: textColor ?? Colors.black,
                     ),
                   ),
-                ],
-              ),
-      ),
+                ),
+              ],
+            ),
     );
+
+    // Handle width constraints properly
+    if (buttonWidth != null) {
+      return SizedBox(
+        width: buttonWidth,
+        height: buttonHeight,
+        child: buttonChild,
+      );
+    } else {
+      return SizedBox(
+        height: buttonHeight,
+        child: buttonChild,
+      );
+    }
   }
 }
 
