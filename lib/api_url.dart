@@ -2,7 +2,7 @@ class ApiUrls {
   ApiUrls._(); // private constructor (best practice)
 
   /// 🔹 CHANGE THIS to your real domain
-  static const String baseUrl = "https://crmrize.govindcrankrod.com";
+  static const String baseUrl = "https://crmrize.govindcrankrod.com/api";
 
   // ================= AUTH =================
   static const String login = "$baseUrl/login";

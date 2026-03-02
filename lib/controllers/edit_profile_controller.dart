@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import '../services/auth_service.dart';
+import '../App_model/profile_model/GetProfileModel.dart';
+import '../App_model/profile_model/UpdateProfileModel.dart';
 
 class EditProfileController extends GetxController {
   final formKey = GlobalKey<FormState>();
@@ -16,8 +19,42 @@ class EditProfileController extends GetxController {
   final logoLight = Rx<XFile?>(null);
   final logoDark = Rx<XFile?>(null);
   final isLoading = false.obs;
+  final isLoadingProfile = false.obs;
+  
+  var errorMessage = ''.obs;
+  var successMessage = ''.obs;
+  var profileData = Rxn<GetProfileModel>();
   
   final ImagePicker picker = ImagePicker();
+  
+  @override
+  void onInit() {
+    super.onInit();
+    loadProfileData();
+  }
+  
+  Future<void> loadProfileData() async {
+    isLoadingProfile.value = true;
+    try {
+      profileData.value = await AuthService.getProfileDetails();
+      
+      if (profileData.value?.user != null) {
+        nameController.text = profileData.value!.user!.name ?? '';
+        emailController.text = profileData.value!.user!.email ?? '';
+        contactController.text = profileData.value!.user!.contact ?? '';
+      }
+      
+      if (profileData.value?.details != null) {
+        siteNameController.text = profileData.value!.details!.siteName ?? '';
+        addressController.text = profileData.value!.details!.address ?? '';
+        footerController.text = profileData.value!.details!.footer ?? '';
+      }
+    } catch (e) {
+      errorMessage.value = 'Failed to load profile: $e';
+    } finally {
+      isLoadingProfile.value = false;
+    }
+  }
   
   @override
   void onClose() {
@@ -28,6 +65,40 @@ class EditProfileController extends GetxController {
     addressController.dispose();
     footerController.dispose();
     super.onClose();
+  }
+  
+  void clearMessages() {
+    errorMessage.value = '';
+    successMessage.value = '';
+  }
+  
+  Future<void> updateProfile() async {
+    if (formKey.currentState!.validate()) {
+      isLoading.value = true;
+      clearMessages();
+      
+      try {
+        Map<String, dynamic> profileDataMap = {
+          'name': nameController.text.trim(),
+          'email': emailController.text.trim(),
+          'contact': contactController.text.trim(),
+        };
+        
+        UpdateProfileModel result = await AuthService.updateProfile(profileDataMap);
+        
+        if (result.status == true) {
+          successMessage.value = result.message ?? 'Profile updated successfully';
+          // Reload profile data
+          await loadProfileData();
+        } else {
+          errorMessage.value = result.message ?? 'Failed to update profile';
+        }
+      } catch (e) {
+        errorMessage.value = 'Update failed: $e';
+      } finally {
+        isLoading.value = false;
+      }
+    }
   }
   
   Future<void> pickImage(String imageType) async {

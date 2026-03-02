@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../controllers/change_password_controller.dart';
 import '../../utils/responsive_config.dart';
 import '../../widgets/widgets.dart';
+import '../main_screen.dart';
 
 class ChangePasswordScreen extends StatelessWidget {
   const ChangePasswordScreen({super.key});
@@ -13,8 +14,15 @@ class ChangePasswordScreen extends StatelessWidget {
     
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: CustomAppBar(
+        logoAsset: 'assets/black.png',
+        onMenuPressed: () => Get.find<MainScreenController>().scaffoldKey.currentState?.openDrawer(),
+        onNotificationPressed: () {},
+        onProfilePressed: () {},
+      ),
       body: CustomScrollWidget(
         children: [
+          const ScreenTitle(title: 'Change Password'),
           Padding(
             padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
             child: Form(
@@ -42,9 +50,6 @@ class ChangePasswordScreen extends StatelessWidget {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your old password';
                         }
-                        if (value.length < 6) {
-                          return 'Password must be at least 6 characters';
-                        }
                         return null;
                       },
                     ),
@@ -70,49 +75,8 @@ class ChangePasswordScreen extends StatelessWidget {
                         if (value == null || value.isEmpty) {
                           return 'Please enter a new password';
                         }
-                        if (value.length < 8) {
-                          return 'Password must be at least 8 characters';
-                        }
-                        if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)').hasMatch(value)) {
-                          return 'Password must contain uppercase, lowercase, and number';
-                        }
                         return null;
                       },
-                    ),
-                  ),
-                  
-                  CustomSpacer(height: 16),
-                  
-                  // Password Requirements
-                  CustomCard(
-                    padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
-                    backgroundColor: Colors.blue[50],
-                    child: CustomColumn(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Password Requirements:',
-                          style: AppTextStyles.getSmall(context).copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.blue[700],
-                          ),
-                        ),
-                        CustomSpacer(height: 8),
-                        ...[
-                          '• At least 8 characters long',
-                          '• Contains uppercase letter (A-Z)',
-                          '• Contains lowercase letter (a-z)',
-                          '• Contains number (0-9)',
-                        ].map((requirement) => Padding(
-                          padding: EdgeInsets.only(top: 4),
-                          child: Text(
-                            requirement,
-                            style: AppTextStyles.getSmall(context).copyWith(
-                              color: Colors.blue[600],
-                            ),
-                          ),
-                        )).toList(),
-                      ],
                     ),
                   ),
                   

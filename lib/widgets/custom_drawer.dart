@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:rizesterapp/screens/Profile/login_screen.dart';
+import 'package:rizesterapp/services/auth_service.dart';
 import '../utils/responsive_config.dart';
 
 class CustomDrawer extends StatelessWidget {
@@ -158,13 +160,37 @@ class CustomDrawer extends StatelessWidget {
               fontSize: ResponsiveConfig.responsiveFont(context, 16),
             ),
           ),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (context) => const LoginScreen(),
+          onTap: () async {
+            // Show confirmation dialog
+            bool? confirmLogout = await Get.dialog<bool>(
+              AlertDialog(
+                title: const Text('Logout'),
+                content: const Text('Are you sure you want to logout?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Get.back(result: false),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () => Get.back(result: true),
+                    child: const Text('Logout'),
+                  ),
+                ],
               ),
             );
+            
+            if (confirmLogout == true) {
+              try {
+                // Call logout API
+                await AuthService.logout();
+                // Navigate to login screen
+                Get.offAll(() => const LoginScreen());
+              } catch (e) {
+                // Even if API call fails, clear local data and navigate to login
+                await AuthService.clearAuthData();
+                Get.offAll(() => const LoginScreen());
+              }
+            }
           },
 
           contentPadding: EdgeInsets.symmetric(

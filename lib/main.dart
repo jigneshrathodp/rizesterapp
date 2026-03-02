@@ -3,9 +3,14 @@ import 'package:get/get.dart';
 import 'package:rizesterapp/screens/Advertise/create_ad_screen.dart';
 import 'package:rizesterapp/screens/Profile/login_screen.dart';
 import 'package:rizesterapp/screens/main_screen.dart';
+import 'package:rizesterapp/screens/splash_screen.dart';
+import 'package:rizesterapp/utils/auth_helper.dart';
 
 
 void main() {
+  // Initialize AuthHelper
+  Get.put(AuthHelper());
+  
   runApp(
     // DevicePreview(
     //   enabled: true,
@@ -56,7 +61,7 @@ class MyApp extends StatelessWidget {
           },
         ),
       ),
-      initialRoute: '/main',
+      home: const SplashScreen(), // Use splash screen as home
       getPages: [
         GetPage(name: '/login', page: () => const LoginScreen()),
         GetPage(name: '/main', page: () => const MainScreen()),

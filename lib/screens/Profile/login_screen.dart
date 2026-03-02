@@ -128,6 +128,56 @@ class LoginScreen extends StatelessWidget {
 
                         CustomSpacer(height: size.height * 0.04),
 
+                        // Error/Success Messages
+                        Obx(() => Column(
+                          children: [
+                            if (controller.errorMessage.value.isNotEmpty)
+                              Container(
+                                padding: EdgeInsets.all(ResponsiveConfig.responsivePadding(context, 12)),
+                                margin: EdgeInsets.only(bottom: ResponsiveConfig.responsivePadding(context, 10)),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.shade100,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.red.shade300),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
+                                    SizedBox(width: ResponsiveConfig.responsivePadding(context, 8)),
+                                    Expanded(
+                                      child: Text(
+                                        controller.errorMessage.value,
+                                        style: TextStyle(color: Colors.red.shade700, fontSize: 14),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            if (controller.successMessage.value.isNotEmpty)
+                              Container(
+                                padding: EdgeInsets.all(ResponsiveConfig.responsivePadding(context, 12)),
+                                margin: EdgeInsets.only(bottom: ResponsiveConfig.responsivePadding(context, 10)),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.shade100,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.green.shade300),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.check_circle_outline, color: Colors.green.shade700, size: 20),
+                                    SizedBox(width: ResponsiveConfig.responsivePadding(context, 8)),
+                                    Expanded(
+                                      child: Text(
+                                        controller.successMessage.value,
+                                        style: TextStyle(color: Colors.green.shade700, fontSize: 14),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        )),
+
                         Obx(
                           () => CustomButton(
                             text: "Login",
