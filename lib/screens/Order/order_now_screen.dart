@@ -1,16 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:rizesterapp/screens/Order/product_details_screen.dart';
 import '../../utils/responsive_config.dart';
 import '../../widgets/widgets.dart';
-import 'buy_now_screen.dart';
+import '../../widgets/widgets.dart';
+import 'package:get/get.dart';
+import 'package:rizesterapp/screens/main_screen.dart';
+import '../notification_screen.dart' as notification;
+import 'package:rizesterapp/screens/Profile/profile_screen.dart';
 
 class OrderNowScreen extends StatefulWidget {
-  const OrderNowScreen({super.key});
+  final bool showAppBar;
+  const OrderNowScreen({super.key, this.showAppBar = false});
 
   @override
   State<OrderNowScreen> createState() => _OrderNowScreenState();
 }
 
 class _OrderNowScreenState extends State<OrderNowScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<ProductItem> _products = [
     ProductItem(
       id: 1,
@@ -57,11 +64,43 @@ class _OrderNowScreenState extends State<OrderNowScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.white,
+      appBar: widget.showAppBar
+          ? CustomAppBar(
+              logoAsset: 'assets/black.png',
+              onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
+              onNotificationPressed: () => Get.to(() => const notification.NotificationScreen()),
+              onProfilePressed: () => Get.to(() => const ProfileScreen()),
+            )
+          : null,
+      drawer: widget.showAppBar
+          ? SizedBox(
+              width: ResponsiveConfig.getWidth(context) * 0.6,
+              child: CustomDrawer(
+                selectedIndex: 1,
+                onItemTapped: (index) {
+                  Navigator.pop(context);
+                  Get.offAll(() => const MainScreen());
+                  Future.microtask(() {
+                    final main = Get.find<MainScreenController>();
+                    main.onItemTapped(index);
+                  });
+                },
+                logoAsset: 'assets/white.png',
+              ),
+            )
+          : null,
       body: CustomScrollWidget(
         children: [
+          const ScreenTitle(title: 'Order Now'),
           Padding(
             padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
             child: CustomColumn(
@@ -144,273 +183,146 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final totalCost = product.weight * product.costPerGram;
+    
     return GestureDetector(
       onTap: onTap,
-      child: CustomCard(
+      child: Container(
         margin: EdgeInsets.only(bottom: ResponsiveConfig.spacingMd(context)),
-        padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
-        child: CustomRow(
-          children: [
-            // Product image
-            Container(
-              width: ResponsiveConfig.responsiveWidth(context, 80),
-              height: ResponsiveConfig.responsiveHeight(context, 80),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: Colors.grey[100],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.asset(
-                  product.imageUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Icon(
-                      Icons.image,
-                      color: Colors.grey[400],
-                      size: ResponsiveConfig.responsiveFont(context, 32),
-                    );
-                  },
-                ),
-              ),
-            ),
-
-            CustomSpacer(width: ResponsiveConfig.spacingMd(context)),
-
-            // Product info
-            Expanded(
-              child: CustomColumn(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    style: AppTextStyles.getSubheading(context).copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  CustomSpacer(height: ResponsiveConfig.spacingSm(context)),
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: ResponsiveConfig.responsivePadding(context, 12),
-                      vertical: ResponsiveConfig.responsivePadding(context, 6),
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.green[50],
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.green[200]!),
-                    ),
-                    child: Text(
-                      'Cost per Gram: ₹${product.costPerGram}',
-                      style: AppTextStyles.getBody(context).copyWith(
-                        color: Colors.green[700],
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Arrow icon
-            Icon(
-              Icons.arrow_forward_ios,
-              color: Colors.grey[400],
-              size: ResponsiveConfig.responsiveFont(context, 20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
+          border: Border.all(
+            color: Colors.black,
+            width: 0.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
+        child: Padding(
+          padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
+          child: CustomRow(
+            children: [
+              // Product image
+              Container(
+                width: ResponsiveConfig.responsiveWidth(context, 80),
+                height: ResponsiveConfig.responsiveHeight(context, 80),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
+                  color: Colors.grey[100],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
+                  child: Image.asset(
+                    product.imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(
+                        Icons.image,
+                        color: Colors.grey[400],
+                        size: ResponsiveConfig.responsiveFont(context, 40),
+                      );
+                    },
+                  ),
+                ),
+              ),
 
-class ProductDetailScreen extends StatelessWidget {
-  final ProductItem product;
+              CustomSpacer(width: ResponsiveConfig.spacingMd(context)),
 
-  const ProductDetailScreen({
-    super.key,
-    required this.product,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final totalCost = product.weight * product.costPerGram;
-
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: CustomAppBar(
-        title: 'Product Detail',
-        onBackPressed: () => Navigator.pop(context),
-        showNotifications: false,
-        showProfile: false,
-      ),
-      body: CustomScrollWidget(
-        children: [
-          Padding(
-            padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
-            child: CustomColumn(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomSpacer(height: 20),
-                
-                // Product image
-                Center(
-                  child: Container(
-                    width: ResponsiveConfig.responsiveWidth(context, 200),
-                    height: ResponsiveConfig.responsiveHeight(context, 200),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      color: Colors.grey[100],
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
+              // Product info
+              Expanded(
+                child: CustomColumn(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product.name,
+                      style: AppTextStyles.getSubheading(context).copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    CustomSpacer(height: ResponsiveConfig.spacingXs(context)),
+                    
+                    // Weight and Cost row
+                    CustomRow(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: ResponsiveConfig.responsivePadding(context, 8),
+                            vertical: ResponsiveConfig.responsivePadding(context, 4),
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            '${product.weight}g',
+                            style: AppTextStyles.getSmall(context).copyWith(
+                              color: Colors.grey[700],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        CustomSpacer(width: ResponsiveConfig.spacingSm(context)),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: ResponsiveConfig.responsivePadding(context, 8),
+                            vertical: ResponsiveConfig.responsivePadding(context, 4),
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            '₹${product.costPerGram}/g',
+                            style: AppTextStyles.getSmall(context).copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Image.asset(
-                        product.imageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            Icons.image,
-                            color: Colors.grey[400],
-                            size: ResponsiveConfig.responsiveFont(context, 60),
-                          );
-                        },
+                    
+                    CustomSpacer(height: ResponsiveConfig.spacingSm(context)),
+                    
+                    // Total cost
+                    Text(
+                      'Total: ₹${totalCost.toStringAsFixed(2)}',
+                      style: AppTextStyles.getSubheading(context).copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green[700],
                       ),
                     ),
-                  ),
+                  ],
                 ),
+              ),
 
-                CustomSpacer(height: ResponsiveConfig.spacingXl(context)),
-
-                // Product name
-                Text(
-                  product.name,
-                  style: AppTextStyles.getHeading(context).copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
+              // Arrow icon
+              Container(
+                width: ResponsiveConfig.responsiveWidth(context, 40),
+                height: ResponsiveConfig.responsiveHeight(context, 40),
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 8)),
                 ),
-
-                CustomSpacer(height: ResponsiveConfig.spacingXl(context)),
-
-                // Details card
-                CustomCard(
-                  backgroundColor: Colors.grey[50],
-                  padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
-                  child: CustomColumn(
-                    children: [
-                      _buildDetailRow(
-                        context,
-                        "Weight Per Gram:",
-                        product.weight.toString(),
-                      ),
-                      CustomSpacer(height: ResponsiveConfig.spacingMd(context)),
-                      _buildDetailRow(
-                        context,
-                        "Cost Per Gram:",
-                        "₹${product.costPerGram}",
-                      ),
-                      CustomSpacer(height: ResponsiveConfig.spacingMd(context)),
-                      _buildDetailRow(
-                        context,
-                        "Total Cost:",
-                        "₹${totalCost.toStringAsFixed(2)}",
-                        isTotal: true,
-                      ),
-                    ],
-                  ),
+                child: Icon(
+                  Icons.arrow_forward_ios,
+                  color: Colors.white,
+                  size: ResponsiveConfig.responsiveFont(context, 18),
                 ),
-
-                CustomSpacer(height: ResponsiveConfig.spacingXl(context)),
-
-                // Buy Now button
-                CustomButton(
-                  text: "Buy Now",
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => BuyNowScreen(
-                          product: {
-                            'id': product.id,
-                            'name': product.name,
-                            'category': 'Electronics',
-                            'weight': product.weight,
-                            'costPerGram': product.costPerGram,
-                            'imageUrl': product.imageUrl,
-                          },
-                        ),
-                      ),
-                    );
-                  },
-                  backgroundColor: Colors.black,
-                  textColor: Colors.white,
-                  fontSize: ResponsiveConfig.responsiveFont(context, 18),
-                  fontWeight: FontWeight.bold,
-                  height: ResponsiveConfig.responsiveHeight(context, 60),
-                ),
-
-                CustomSpacer(height: ResponsiveConfig.spacingMd(context)),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
-
-  Widget _buildDetailRow(
-    BuildContext context,
-    String label,
-    String value, {
-    bool isTotal = false,
-  }) {
-    return CustomRow(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: AppTextStyles.getBody(context).copyWith(
-            color: Colors.grey[600],
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        Text(
-          value,
-          style: AppTextStyles.getSubheading(context).copyWith(
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
-            color: isTotal ? Colors.green[700] : Colors.black87,
-            fontSize: isTotal 
-                ? ResponsiveConfig.responsiveFont(context, 20)
-                : ResponsiveConfig.responsiveFont(context, 16),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class ProductItem {
-  final int id;
-  final String name;
-  final double costPerGram;
-  final int weight;
-  final String imageUrl;
-
-  ProductItem({
-    required this.id,
-    required this.name,
-    required this.costPerGram,
-    required this.weight,
-    required this.imageUrl,
-  });
 }

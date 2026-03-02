@@ -80,11 +80,11 @@ class AdvertiseListController extends GetxController {
   }
   
   void navigateToCreateAd() {
-    Get.to(() => const CreateAdScreen());
+    Get.to(() => const CreateAdScreen(showAppBar: true));
   }
   
   void navigateToUpdateAd(Map<String, dynamic> adData) {
-    Get.to(() => UpdateAdsScreen(adData: adData));
+    Get.to(() => UpdateAdsScreen(adData: adData, showAppBar: true));
   }
   
   @override

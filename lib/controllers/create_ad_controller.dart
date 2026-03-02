@@ -14,6 +14,8 @@ class CreateAdController extends GetxController {
   final isLoading = false.obs;
   
   final ImagePicker picker = ImagePicker();
+
+  var scaffoldKey;
   
   @override
   void onClose() {

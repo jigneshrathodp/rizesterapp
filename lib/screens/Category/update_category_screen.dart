@@ -2,13 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../utils/responsive_config.dart';
 import '../../widgets/widgets.dart';
+import 'package:get/get.dart';
+import 'package:rizesterapp/screens/main_screen.dart';
+import '../notification_screen.dart' as notification;
+import 'package:rizesterapp/screens/Profile/profile_screen.dart';
 
 class UpdateCategoryScreen extends StatefulWidget {
   final Map<String, dynamic> categoryData;
+  final bool showAppBar;
 
   const UpdateCategoryScreen({
     super.key,
     required this.categoryData,
+    this.showAppBar = false,
   });
 
   @override
@@ -16,6 +22,7 @@ class UpdateCategoryScreen extends StatefulWidget {
 }
 
 class _UpdateCategoryScreenState extends State<UpdateCategoryScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late final TextEditingController _skuController;
@@ -48,15 +55,36 @@ class _UpdateCategoryScreenState extends State<UpdateCategoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.white,
-      appBar: CustomAppBar(
-        title: 'Update Category',
-        onBackPressed: () => Navigator.pop(context),
-        showNotifications: false,
-        showProfile: false,
-      ),
+      appBar: widget.showAppBar
+          ? CustomAppBar(
+              logoAsset: 'assets/black.png',
+              onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
+              onNotificationPressed: () => Get.to(() => const notification.NotificationScreen()),
+              onProfilePressed: () => Get.to(() => const ProfileScreen()),
+            )
+          : null,
+      drawer: widget.showAppBar
+          ? SizedBox(
+              width: ResponsiveConfig.getWidth(context) * 0.6,
+              child: CustomDrawer(
+                selectedIndex: 3,
+                onItemTapped: (index) {
+                  Navigator.pop(context);
+                  Get.offAll(() => const MainScreen());
+                  Future.microtask(() {
+                    final main = Get.find<MainScreenController>();
+                    main.onItemTapped(index);
+                  });
+                },
+                logoAsset: 'assets/white.png',
+              ),
+            )
+          : null,
       body: CustomScrollWidget(
         children: [
+          const ScreenTitle(title: 'Update Category'),
           Padding(
             padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
             child: Form(

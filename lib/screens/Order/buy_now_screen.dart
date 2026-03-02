@@ -16,97 +16,101 @@ class BuyNowScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(BuyNowController());
     
-    return CustomScaffold(
-      appBar: CustomAppBar(
-        title: 'Buy Now',
-        onBackPressed: () => Get.back(),
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(ResponsiveConfig.responsivePadding(context, 16)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Product Images Section
-            _buildProductImages(context),
-            SizedBox(height: ResponsiveConfig.spacingMd(context)),
-            
-            // Product Details Section
-            _buildProductDetails(context),
-            SizedBox(height: ResponsiveConfig.spacingMd(context)),
-            
-            // Customer Information Section
-            _buildCustomerInformation(context, controller),
-            SizedBox(height: ResponsiveConfig.spacingMd(context)),
-            
-            // Pricing Section
-            Obx(() => _buildPricingSection(context, controller)),
-            SizedBox(height: ResponsiveConfig.spacingLg(context)),
-            
-            // Create Order Button
-            CustomButton(
-              text: 'Create Order',
-              onPressed: controller.createOrder,
-              backgroundColor: Colors.green,
-              textColor: Colors.white,
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: CustomScrollWidget(
+        children: [
+          const ScreenTitle(title: 'Buy Now'),
+          Padding(
+            padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
+            child: CustomColumn(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomCard(
+                  child: _buildProductImages(context),
+                  margin: EdgeInsets.zero,
+                ),
+                CustomSpacer(height: ResponsiveConfig.spacingMd(context)),
+                CustomCard(
+                  child: _buildProductDetails(context),
+                  margin: EdgeInsets.zero,
+                ),
+                CustomSpacer(height: ResponsiveConfig.spacingMd(context)),
+                CustomCard(
+                  child: _buildCustomerInformation(context, controller),
+                  margin: EdgeInsets.zero,
+                ),
+                CustomSpacer(height: ResponsiveConfig.spacingMd(context)),
+                Obx(
+                  () => CustomCard(
+                    child: _buildPricingSection(context, controller),
+                    margin: EdgeInsets.zero,
+                  ),
+                ),
+                CustomSpacer(height: ResponsiveConfig.spacingLg(context)),
+                CustomButton(
+                  text: 'Create Order',
+                  onPressed: controller.createOrder,
+                  backgroundColor: Colors.black,
+                  textColor: Colors.white,
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildProductImages(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(ResponsiveConfig.responsivePadding(context, 16)),
+      width: double.infinity,
+      padding: EdgeInsets.all(ResponsiveConfig.responsivePadding(context, 20)),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
+        borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 16)),
+        border: Border.all(
+          color: Colors.black,
+          width: 0.2,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: Column(
+      child: CustomColumn(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText(
-            'Product Image',
-            fontSize: ResponsiveConfig.responsiveFont(context, 16),
-            fontWeight: FontWeight.bold,
-          ),
-          SizedBox(height: ResponsiveConfig.spacingSm(context)),
           Row(
             children: [
               Container(
-                width: ResponsiveConfig.responsiveWidth(context, 80),
-                height: ResponsiveConfig.responsiveWidth(context, 80),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(8),
+                padding: EdgeInsets.symmetric(
+                  horizontal: ResponsiveConfig.responsivePadding(context, 12),
+                  vertical: ResponsiveConfig.responsivePadding(context, 8),
                 ),
-                child: Icon(
-                  Icons.image,
-                  color: Colors.grey[600],
-                  size: ResponsiveConfig.responsiveFont(context, 32),
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 8)),
+                ),
+                child: Text(
+                  'Product Images',
+                  style: AppTextStyles.getBody(context).copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-              SizedBox(width: ResponsiveConfig.spacingSm(context)),
-              Container(
-                width: ResponsiveConfig.responsiveWidth(context, 80),
-                height: ResponsiveConfig.responsiveWidth(context, 80),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.image,
-                  color: Colors.grey[600],
-                  size: ResponsiveConfig.responsiveFont(context, 32),
-                ),
-              ),
+            ],
+          ),
+          CustomSpacer(height: ResponsiveConfig.spacingMd(context)),
+          Row(
+            children: [
+              _buildImageContainer(context, 'assets/headphones.jpg'),
+              CustomSpacer(width: ResponsiveConfig.spacingMd(context)),
+              _buildImageContainer(context, 'assets/phone.jpg'),
             ],
           ),
         ],
@@ -114,28 +118,137 @@ class BuyNowScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildImageContainer(BuildContext context, String imagePath) {
+    return Container(
+      width: ResponsiveConfig.responsiveWidth(context, 100),
+      height: ResponsiveConfig.responsiveHeight(context, 100),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
+        color: Colors.grey[100],
+        border: Border.all(
+          color: Colors.black,
+          width: 0.2,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
+        child: Image.asset(
+          imagePath,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Icon(
+              Icons.image,
+              color: Colors.grey[400],
+              size: ResponsiveConfig.responsiveFont(context, 40),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   Widget _buildProductDetails(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(ResponsiveConfig.responsivePadding(context, 16)),
+      width: double.infinity,
+      padding: EdgeInsets.all(ResponsiveConfig.responsivePadding(context, 20)),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
+        borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 16)),
+        border: Border.all(
+          color: Colors.black,
+          width: 0.2,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: Column(
+      child: CustomColumn(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildDetailRow(context, 'Product Name', 'Wireless Bluetooth Headphones'),
-          _buildDetailRow(context, 'Category', 'Electronics'),
-          _buildDetailRow(context, 'Weight In Gram', '250'),
-          _buildDetailRow(context, 'Cost Per Gram(RS)', '4.5'),
-          _buildDetailRow(context, 'Total Cost(RS)', '1125'),
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: ResponsiveConfig.responsivePadding(context, 12),
+              vertical: ResponsiveConfig.responsivePadding(context, 8),
+            ),
+            decoration: BoxDecoration(
+              color: Colors.black,
+              borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 8)),
+            ),
+            child: Text(
+              'Product Details',
+              style: AppTextStyles.getBody(context).copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          CustomSpacer(height: ResponsiveConfig.spacingMd(context)),
+          _buildProductDetailRow(context, 'Product Name', 'Wireless Bluetooth Headphones', Icons.inventory_2),
+          CustomSpacer(height: ResponsiveConfig.spacingSm(context)),
+          _buildProductDetailRow(context, 'Category', 'Electronics', Icons.category),
+          CustomSpacer(height: ResponsiveConfig.spacingSm(context)),
+          _buildProductDetailRow(context, 'Weight', '250 grams', Icons.scale),
+          CustomSpacer(height: ResponsiveConfig.spacingSm(context)),
+          _buildProductDetailRow(context, 'Cost per Gram', '₹4.5', Icons.currency_rupee),
+          CustomSpacer(height: ResponsiveConfig.spacingSm(context)),
+          _buildProductDetailRow(context, 'Total Cost', '₹1125', Icons.calculate, isTotal: true),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductDetailRow(BuildContext context, String label, String value, IconData icon, {bool isTotal = false}) {
+    return Container(
+      padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
+      decoration: BoxDecoration(
+        color: isTotal ? Colors.green[50] : Colors.grey[50],
+        borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 8)),
+        border: Border.all(
+          color: isTotal ? Colors.green[200]! : Colors.grey[200]!,
+          width: 1,
+        ),
+      ),
+      child: CustomRow(
+        children: [
+          Container(
+            width: ResponsiveConfig.responsiveWidth(context, 40),
+            height: ResponsiveConfig.responsiveHeight(context, 40),
+            decoration: BoxDecoration(
+              color: isTotal ? Colors.green : Colors.grey[600],
+              borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 8)),
+            ),
+            child: Icon(
+              icon,
+              color: Colors.white,
+              size: ResponsiveConfig.responsiveFont(context, 20),
+            ),
+          ),
+          CustomSpacer(width: ResponsiveConfig.spacingMd(context)),
+          Expanded(
+            child: CustomColumn(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: AppTextStyles.getSmall(context).copyWith(
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  value,
+                  style: AppTextStyles.getBody(context).copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isTotal ? Colors.green[700] : Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

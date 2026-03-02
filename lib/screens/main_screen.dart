@@ -4,13 +4,9 @@ import 'package:rizesterapp/screens/Product/list_product_screen.dart';
 import 'package:rizesterapp/screens/Advertise/list_ad_screen.dart';
 import 'package:rizesterapp/screens/Advertise/create_ad_screen.dart';
 import 'package:rizesterapp/screens/Product/create_product_screen.dart';
-import 'package:rizesterapp/screens/setting_screen.dart';
-import 'package:rizesterapp/screens/Product/update_product_screen.dart';
 import 'package:rizesterapp/screens/Category/create_category_screen.dart';
-import 'package:rizesterapp/screens/Category/update_category_screen.dart';
 import 'package:rizesterapp/screens/Profile/editprofile_screen.dart';
 import 'package:rizesterapp/screens/Profile/changepassword_screen.dart';
-import 'package:rizesterapp/screens/Advertise/update_ads_screen.dart';
 import 'package:rizesterapp/screens/notification_screen.dart' as notification;
 import '../utils/responsive_config.dart';
 import '../widgets/widgets.dart';
@@ -18,6 +14,7 @@ import 'Category/list_category_screen.dart';
 import 'dashboard_screen.dart';
 import 'Order/order_list_screen.dart';
 import 'Order/order_now_screen.dart';
+import 'Profile/profile_screen.dart';
 
 class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
@@ -25,19 +22,15 @@ class MainScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(MainScreenController());
-    
+
     return Scaffold(
       key: controller.scaffoldKey,
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
         logoAsset: 'assets/black.png',
         onMenuPressed: () => controller.scaffoldKey.currentState?.openDrawer(),
-        onNotificationPressed: () {
-          // Handle notification press
-        },
-        onProfilePressed: () {
-          // Handle profile press
-        },
+        onNotificationPressed: () => Get.to(() => const notification.NotificationScreen()),
+        onProfilePressed: () => Get.to(() => const ProfileScreen()),
       ),
       drawer: SizedBox(
         width: ResponsiveConfig.getWidth(context) * 0.6,

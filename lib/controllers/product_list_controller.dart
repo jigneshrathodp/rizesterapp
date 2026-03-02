@@ -119,11 +119,11 @@ class ProductListController extends GetxController {
   }
   
   void navigateToCreateProduct() {
-    Get.to(() => const CreateProductScreen());
+    Get.to(() => const CreateProductScreen(showAppBar: true));
   }
   
   void navigateToUpdateProduct(Map<String, dynamic> productData) {
-    Get.to(() => UpdateProductScreen(productData: productData));
+    Get.to(() => UpdateProductScreen(productData: productData, showAppBar: true));
   }
   
   @override

@@ -3,18 +3,60 @@ import 'package:get/get.dart';
 import '../../controllers/create_ad_controller.dart';
 import '../../utils/responsive_config.dart';
 import '../../widgets/widgets.dart';
+import 'package:rizesterapp/screens/main_screen.dart';
+import '../notification_screen.dart' as notification;
+import 'package:rizesterapp/screens/Profile/profile_screen.dart';
 
-class CreateAdScreen extends StatelessWidget {
-  const CreateAdScreen({super.key});
+class CreateAdScreen extends StatefulWidget {
+  final bool showAppBar;
+  const CreateAdScreen({super.key, this.showAppBar = false});
+
+  @override
+  State<CreateAdScreen> createState() => _CreateAdScreenState();
+}
+
+class _CreateAdScreenState extends State<CreateAdScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(CreateAdController());
-    
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.white,
+      appBar: widget.showAppBar
+          ? CustomAppBar(
+              logoAsset: 'assets/black.png',
+              onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
+              onNotificationPressed: () => Get.to(() => const notification.NotificationScreen()),
+              onProfilePressed: () => Get.to(() => const ProfileScreen()),
+            )
+          : null,
+      drawer: widget.showAppBar
+          ? SizedBox(
+              width: ResponsiveConfig.getWidth(context) * 0.6,
+              child: CustomDrawer(
+                selectedIndex: 7,
+                onItemTapped: (index) {
+                  Navigator.pop(context);
+                  Get.offAll(() => const MainScreen());
+                  Future.microtask(() {
+                    final main = Get.find<MainScreenController>();
+                    main.onItemTapped(index);
+                  });
+                },
+                logoAsset: 'assets/white.png',
+              ),
+            )
+          : null,
       body: CustomScrollWidget(
         children: [
+          const ScreenTitle(title: 'Create Advertisement'),
           Padding(
             padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
             child: Form(
@@ -23,8 +65,6 @@ class CreateAdScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomSpacer(height: 30),
-                  
-                  // Image Upload Section
                   Obx(
                     () => GestureDetector(
                       onTap: controller.pickImage,
@@ -48,7 +88,6 @@ class CreateAdScreen extends StatelessWidget {
                                       height: double.infinity,
                                       errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(context),
                                     ),
-                                    // Remove image button
                                     Positioned(
                                       top: 8,
                                       right: 8,
@@ -76,10 +115,7 @@ class CreateAdScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  
                   CustomSpacer(height: 24),
-                  
-                  // Ad Title
                   CustomTextField(
                     controller: controller.titleController,
                     labelText: 'Ad Title',
@@ -95,10 +131,7 @@ class CreateAdScreen extends StatelessWidget {
                       return null;
                     },
                   ),
-                  
                   CustomSpacer(height: 16),
-                  
-                  // Platform
                   Obx(
                     () => CustomDropdownButtonFormField<String>(
                       value: controller.selectedPlatform.value,
@@ -119,10 +152,7 @@ class CreateAdScreen extends StatelessWidget {
                       },
                     ),
                   ),
-                  
                   CustomSpacer(height: 16),
-                  
-                  // Budget/Price
                   CustomTextField(
                     controller: controller.priceController,
                     labelText: 'Budget/Price',
@@ -139,10 +169,7 @@ class CreateAdScreen extends StatelessWidget {
                       return null;
                     },
                   ),
-                  
                   CustomSpacer(height: 16),
-                  
-                  // Destination URL
                   CustomTextField(
                     controller: controller.urlController,
                     labelText: 'Destination URL',
@@ -159,10 +186,7 @@ class CreateAdScreen extends StatelessWidget {
                       return null;
                     },
                   ),
-                  
                   CustomSpacer(height: 16),
-                  
-                  // Ad Description
                   CustomTextField(
                     controller: controller.descriptionController,
                     labelText: 'Ad Description',
@@ -179,10 +203,7 @@ class CreateAdScreen extends StatelessWidget {
                       return null;
                     },
                   ),
-                  
                   CustomSpacer(height: 32),
-                  
-                  // Action Buttons
                   CustomRow(
                     children: [
                       Expanded(
@@ -205,7 +226,6 @@ class CreateAdScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  
                   CustomSpacer(height: 32),
                 ],
               ),

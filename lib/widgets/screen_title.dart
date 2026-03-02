@@ -40,7 +40,7 @@ class ScreenTitle extends StatelessWidget {
             child: Text(
               title,
               style: TextStyle(
-                fontSize: fontSize ?? ResponsiveConfig.responsiveFont(context, 24),
+                fontSize: fontSize ?? ResponsiveConfig.responsiveFont(context, 18),
                 fontWeight: fontWeight ?? FontWeight.bold,
                 color: titleColor ?? Colors.black,
               ),

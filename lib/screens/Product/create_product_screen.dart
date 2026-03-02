@@ -3,18 +3,59 @@ import 'package:get/get.dart';
 import '../../controllers/create_product_controller.dart';
 import '../../utils/responsive_config.dart';
 import '../../widgets/widgets.dart';
+import 'package:rizesterapp/screens/main_screen.dart';
+import '../notification_screen.dart' as notification;
+import 'package:rizesterapp/screens/Profile/profile_screen.dart';
 
-class CreateProductScreen extends StatelessWidget {
-  const CreateProductScreen({super.key});
+class CreateProductScreen extends StatefulWidget {
+  final bool showAppBar;
+  const CreateProductScreen({super.key, this.showAppBar = false});
+  @override
+  State<CreateProductScreen> createState() => _CreateProductScreenState();
+}
+
+class _CreateProductScreenState extends State<CreateProductScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(CreateProductController());
     
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.white,
+      appBar: widget.showAppBar
+          ? CustomAppBar(
+              logoAsset: 'assets/black.png',
+              onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
+              onNotificationPressed: () => Get.to(() => const notification.NotificationScreen()),
+              onProfilePressed: () => Get.to(() => const ProfileScreen()),
+            )
+          : null,
+      drawer: widget.showAppBar
+          ? SizedBox(
+              width: ResponsiveConfig.getWidth(context) * 0.6,
+              child: CustomDrawer(
+                selectedIndex: 8,
+                onItemTapped: (index) {
+                  Navigator.pop(context);
+                  Get.offAll(() => const MainScreen());
+                  Future.microtask(() {
+                    final main = Get.find<MainScreenController>();
+                    main.onItemTapped(index);
+                  });
+                },
+                logoAsset: 'assets/white.png',
+              ),
+            )
+          : null,
       body: CustomScrollWidget(
         children: [
+          const ScreenTitle(title: 'Create Product'),
           Padding(
             padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
             child: Form(

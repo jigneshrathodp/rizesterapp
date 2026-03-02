@@ -181,44 +181,30 @@ class ProductListScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      'Showing ${((controller.currentPage.value - 1) * int.parse(controller.selectedEntries.value)) + 1} to ${((controller.currentPage.value - 1) * int.parse(controller.selectedEntries.value)) + controller.paginatedData.length} of ${controller.productData.length} entries',
-                      style: const TextStyle(fontSize: 14),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  Flexible(
+                    child: Text('Showing ${((controller.currentPage.value - 1) * int.parse(controller.selectedEntries.value)) + 1} to ${((controller.currentPage.value - 1) * int.parse(controller.selectedEntries.value)) + controller.paginatedData.length} of ${controller.productData.length} entries'),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    flex: 1,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Flexible(
-                          child: ElevatedButton(
-                            onPressed: controller.currentPage.value > 1 ? controller.goToPreviousPage : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: controller.currentPage.value > 1 ? Colors.black : Colors.grey[300],
-                              foregroundColor: controller.currentPage.value > 1 ? Colors.white : Colors.black,
-                            ),
-                            child: const Text('Previous'),
-                          ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ElevatedButton(
+                        onPressed: controller.currentPage.value > 1 ? controller.goToPreviousPage : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: controller.currentPage.value > 1 ? Colors.black : Colors.grey[300],
+                          foregroundColor: controller.currentPage.value > 1 ? Colors.white : Colors.black,
                         ),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: ElevatedButton(
-                            onPressed: controller.currentPage.value < controller.totalPages.value ? controller.goToNextPage : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: controller.currentPage.value < controller.totalPages.value ? Colors.black : Colors.grey[300],
-                              foregroundColor: controller.currentPage.value < controller.totalPages.value ? Colors.white : Colors.black,
-                            ),
-                            child: const Text('Next'),
-                          ),
+                        child: const Text('Previous'),
+                      ),
+                      const SizedBox(width: 10),
+                      ElevatedButton(
+                        onPressed: controller.currentPage.value < controller.totalPages.value ? controller.goToNextPage : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: controller.currentPage.value < controller.totalPages.value ? Colors.black : Colors.grey[300],
+                          foregroundColor: controller.currentPage.value < controller.totalPages.value ? Colors.white : Colors.black,
                         ),
-                      ],
-                    ),
+                        child: const Text('Next'),
+                      ),
+                    ],
                   ),
                 ],
               ),

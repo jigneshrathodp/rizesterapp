@@ -83,11 +83,11 @@ class CategoryListController extends GetxController {
   }
   
   void navigateToCreateCategory() {
-    Get.to(() => const CreateCategoryScreen());
+    Get.to(() => const CreateCategoryScreen(showAppBar: true));
   }
   
   void navigateToUpdateCategory(Map<String, dynamic> categoryData) {
-    Get.to(() => UpdateCategoryScreen(categoryData: categoryData));
+    Get.to(() => UpdateCategoryScreen(categoryData: categoryData, showAppBar: true));
   }
   
   void deleteCategory(int id) {

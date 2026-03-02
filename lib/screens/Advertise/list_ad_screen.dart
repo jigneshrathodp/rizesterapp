@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/advertise_list_controller.dart';
 import '../../widgets/widgets.dart';
-import 'create_ad_screen.dart';
-import 'update_ads_screen.dart';
+
 
 class AdvertiseListScreen extends StatelessWidget {
   const AdvertiseListScreen({super.key});

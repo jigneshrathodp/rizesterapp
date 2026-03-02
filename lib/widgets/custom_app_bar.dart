@@ -54,40 +54,23 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       titleSpacing: titleSpacing,
       automaticallyImplyLeading: automaticallyImplyLeading,
       title: titleWidget ??
-          (title != null
-              ? Text(
-                  title!,
-                  style: AppTextStyles.getSubheading(context).copyWith(
-                    color: foregroundColor ?? Colors.black,
-                    fontWeight: FontWeight.w600,
-                  ),
-                )
-              : (logoAsset != null
-                  ? Image.asset(
-                      logoAsset!,
-                      height: logoHeight,
-                    )
-                  : null)),
+          (logoAsset != null
+              ? Image.asset(
+            logoAsset!,
+            height: logoHeight,
+          )
+              : null),
       leading: leading ??
-          (onBackPressed != null
+          (onMenuPressed != null
               ? IconButton(
-                  icon: Icon(
-                    Icons.arrow_back,
-                    color: foregroundColor ?? Colors.black,
-                    size: iconSize,
-                  ),
-                  onPressed: onBackPressed,
-                )
-              : (onMenuPressed != null
-                  ? IconButton(
-                      icon: Icon(
-                        Icons.menu,
-                        color: foregroundColor ?? Colors.black,
-                        size: iconSize,
-                      ),
-                      onPressed: onMenuPressed,
-                    )
-                  : null)),
+            icon: Icon(
+              Icons.menu,
+              color: foregroundColor ?? Colors.black,
+              size: iconSize,
+            ),
+            onPressed: onMenuPressed,
+          )
+              : null),
       actions: actions ??
           [
             if (showNotifications)
@@ -174,39 +157,22 @@ class CustomSliverAppBar extends StatelessWidget {
       stretch: stretch,
       flexibleSpace: flexibleSpace,
       title: titleWidget ??
-          (title != null
-              ? Text(
-                  title!,
-                  style: AppTextStyles.getSubheading(context).copyWith(
-                    color: foregroundColor ?? Colors.black,
-                    fontWeight: FontWeight.w600,
-                  ),
-                )
-              : (logoAsset != null
-                  ? Image.asset(
-                      logoAsset!,
-                      height: logoHeight,
-                    )
-                  : null)),
-      leading: onBackPressed != null
-          ? IconButton(
-              icon: Icon(
-                Icons.arrow_back,
-                color: foregroundColor ?? Colors.black,
-                size: iconSize,
-              ),
-              onPressed: onBackPressed,
-            )
-          : (onMenuPressed != null
-              ? IconButton(
-                  icon: Icon(
-                    Icons.menu,
-                    color: foregroundColor ?? Colors.black,
-                    size: iconSize,
-                  ),
-                  onPressed: onMenuPressed,
-                )
+          (logoAsset != null
+              ? Image.asset(
+            logoAsset!,
+            height: logoHeight,
+          )
               : null),
+      leading: onMenuPressed != null
+          ? IconButton(
+        icon: Icon(
+          Icons.menu,
+          color: foregroundColor ?? Colors.black,
+          size: iconSize,
+        ),
+        onPressed: onMenuPressed,
+      )
+          : null,
       actions: actions ??
           [
             if (showNotifications)
@@ -276,9 +242,9 @@ class CustomTabBar extends StatelessWidget implements PreferredSizeWidget {
         unselectedLabelStyle: unselectedLabelStyle ??
             AppTextStyles.getBody(context).copyWith(fontWeight: FontWeight.normal),
         padding: padding,
-        indicatorSize: indicatorSize != null 
-                ? (indicatorSize == IndicatorSize.tab ? TabBarIndicatorSize.tab : TabBarIndicatorSize.label)
-                : null,
+        indicatorSize: indicatorSize != null
+            ? (indicatorSize == IndicatorSize.tab ? TabBarIndicatorSize.tab : TabBarIndicatorSize.label)
+            : null,
       ),
     );
   }

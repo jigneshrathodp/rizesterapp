@@ -75,6 +75,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       backgroundColor: Colors.white,
       body: CustomScrollWidget(
         children: [
+          const ScreenTitle(title: 'Notifications'),
           Padding(
             padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
             child: CustomColumn(

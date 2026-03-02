@@ -146,7 +146,7 @@ class OrderListController extends GetxController {
   }
   
   void navigateToOrderNow() {
-    Get.to(() => const OrderNowScreen());
+    Get.to(() => const OrderNowScreen(showAppBar: true));
   }
   
   void deleteOrder(int id) {
