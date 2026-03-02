@@ -27,6 +27,7 @@ class MainScreen extends StatelessWidget {
     final controller = Get.put(MainScreenController());
     
     return Scaffold(
+      key: controller.scaffoldKey,
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
         logoAsset: 'assets/black.png',

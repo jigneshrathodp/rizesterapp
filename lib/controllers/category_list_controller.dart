@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../screens/Category/create_category_screen.dart';
+import '../screens/Category/update_category_screen.dart';
 
 class CategoryListController extends GetxController {
   final TextEditingController searchController = TextEditingController();
@@ -81,11 +83,11 @@ class CategoryListController extends GetxController {
   }
   
   void navigateToCreateCategory() {
-    Get.toNamed('/create-category');
+    Get.to(() => const CreateCategoryScreen());
   }
   
   void navigateToUpdateCategory(Map<String, dynamic> categoryData) {
-    Get.toNamed('/update-category', arguments: categoryData);
+    Get.to(() => UpdateCategoryScreen(categoryData: categoryData));
   }
   
   void deleteCategory(int id) {

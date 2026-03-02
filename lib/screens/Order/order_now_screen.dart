@@ -60,12 +60,6 @@ class _OrderNowScreenState extends State<OrderNowScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CustomAppBar(
-        title: 'Order Now',
-        onBackPressed: () => Navigator.pop(context),
-        showNotifications: false,
-        showProfile: false,
-      ),
       body: CustomScrollWidget(
         children: [
           Padding(

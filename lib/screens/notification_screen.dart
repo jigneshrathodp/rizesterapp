@@ -73,24 +73,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CustomAppBar(
-        title: 'Notifications',
-        onBackPressed: () => Navigator.pop(context),
-        showNotifications: false,
-        showProfile: false,
-        actions: [
-          // Mark all as read button
-          IconButton(
-            onPressed: _markAllAsRead,
-            icon: const Icon(
-              Icons.done_all,
-              color: Colors.black,
-              size: 24,
-            ),
-            tooltip: 'Mark all as read',
-          ),
-        ],
-      ),
       body: CustomScrollWidget(
         children: [
           Padding(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/widgets.dart';
 
 
 class DashboardScreen extends StatelessWidget {
@@ -51,70 +52,77 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: dashboardItems.map((item) {
-            return Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.black,
-                  width: 0.2,
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    // Big Icon Container
-                    Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
+      body: Column(
+        children: [
+          const ScreenTitle(title: 'Dashboard'),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: dashboardItems.map((item) {
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
                         color: Colors.black,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        item['icon'],
-                        color: Colors.white,
-                        size: 30,
+                        width: 0.2,
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    // Text Column
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
                         children: [
-                          Text(
-                            item['title'],
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.normal,
+                          // Big Icon Container
+                          Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              color: Colors.black,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              item['icon'],
+                              color: Colors.white,
+                              size: 30,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            item['value'],
-                            style: const TextStyle(
-                              fontSize: 24,
-                              color: Colors.black,
-                              fontWeight: FontWeight.normal,
+                          const SizedBox(width: 16),
+                          // Text Column
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item['title'],
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                    fontWeight: FontWeight.normal,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  item['value'],
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.normal,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
+                  );
+                }).toList(),
               ),
-            );
-          }).toList(),
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }

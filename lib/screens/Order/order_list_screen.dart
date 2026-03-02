@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/order_list_controller.dart';
+import '../../widgets/widgets.dart';
 import 'order_now_screen.dart';
 
 class OrderListScreen extends StatelessWidget {
@@ -14,35 +15,27 @@ class OrderListScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // Fixed header section
-          Padding(
-            padding: const EdgeInsets.all(16.0),
+          ScreenTitle(
+            title: 'Order List',
+            action: ElevatedButton(
+              onPressed: controller.navigateToOrderNow,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Add Order'),
+            ),
+          ),
+          Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Order List',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: controller.navigateToOrderNow,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
-                      ),
-                      child: const Text('Add Order'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Row(
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 20),
+                      Row(
                   children: [
                     const Text('Show '),
                     Obx(
@@ -180,9 +173,8 @@ class OrderListScreen extends StatelessWidget {
               ),
             ),
           ),
-          Obx(
-            () => controller.paginatedData.isEmpty
-                ? const Padding(
+                if (controller.paginatedData.isEmpty)
+                  const Padding(
                     padding: EdgeInsets.only(bottom: 20),
                     child: Center(
                       child: Text(
@@ -193,8 +185,9 @@ class OrderListScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                  )
-                : Container(),
+                  ),
+              ],
+            ),
           ),
           // Fixed bottom pagination section
           Obx(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../screens/Order/order_now_screen.dart';
 
 class OrderListController extends GetxController {
   final TextEditingController searchController = TextEditingController();
@@ -145,7 +146,7 @@ class OrderListController extends GetxController {
   }
   
   void navigateToOrderNow() {
-    Get.toNamed('/order-now');
+    Get.to(() => const OrderNowScreen());
   }
   
   void deleteOrder(int id) {

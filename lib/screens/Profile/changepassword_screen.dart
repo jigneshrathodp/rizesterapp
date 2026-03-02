@@ -13,12 +13,6 @@ class ChangePasswordScreen extends StatelessWidget {
     
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CustomAppBar(
-        title: 'Change Password',
-        onBackPressed: () => Get.back(),
-        showNotifications: false,
-        showProfile: false,
-      ),
       body: CustomScrollWidget(
         children: [
           Padding(

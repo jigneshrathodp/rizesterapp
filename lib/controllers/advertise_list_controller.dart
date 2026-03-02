@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../screens/Advertise/create_ad_screen.dart';
+import '../screens/Advertise/update_ads_screen.dart';
 
 class AdvertiseListController extends GetxController {
   final TextEditingController searchController = TextEditingController();
@@ -78,11 +80,11 @@ class AdvertiseListController extends GetxController {
   }
   
   void navigateToCreateAd() {
-    Get.toNamed('/create-ad');
+    Get.to(() => const CreateAdScreen());
   }
   
   void navigateToUpdateAd(Map<String, dynamic> adData) {
-    Get.toNamed('/update-ad', arguments: adData);
+    Get.to(() => UpdateAdsScreen(adData: adData));
   }
   
   @override

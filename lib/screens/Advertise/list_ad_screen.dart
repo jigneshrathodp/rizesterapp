@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/advertise_list_controller.dart';
+import '../../widgets/widgets.dart';
 import 'create_ad_screen.dart';
 import 'update_ads_screen.dart';
 
@@ -15,35 +16,27 @@ class AdvertiseListScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // Fixed header section
-          Padding(
-            padding: const EdgeInsets.all(16.0),
+          ScreenTitle(
+            title: 'Advertise List',
+            action: ElevatedButton(
+              onPressed: controller.navigateToCreateAd,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Add Advertise'),
+            ),
+          ),
+          Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Advertise List',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: controller.navigateToCreateAd,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
-                      ),
-                      child: const Text('Add Advertise'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Row(
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 20),
+                      Row(
                   children: [
                     const Text('Show '),
                     Obx(
@@ -195,6 +188,9 @@ class AdvertiseListScreen extends StatelessWidget {
           ),
         ],
       ),
+          )
+        ]
+      )
     );
   }
 }

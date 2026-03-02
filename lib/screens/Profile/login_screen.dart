@@ -82,32 +82,47 @@ class LoginScreen extends StatelessWidget {
 
                         CustomSpacer(height: size.height * 0.03),
 
-                        GlassTextField(
-                          hintText: "Email",
-                          controller: controller.emailController,
-                        ),
+                        Form(
+                          key: controller.formKey,
+                          child: CustomColumn(
+                            children: [
+                              GlassTextField(
+                                hintText: "Email",
+                                controller: controller.emailController,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter your email';
+                                  }
+                                  if (!GetUtils.isEmail(value)) {
+                                    return 'Please enter a valid email';
+                                  }
+                                  return null;
+                                },
+                              ),
 
-                        CustomSpacer(height: size.height * 0.025),
+                              CustomSpacer(height: size.height * 0.025),
 
-                        Obx(
-                          () => GlassTextField(
-                            hintText: "Password",
-                            controller: controller.passwordController,
-                            obscureText: !controller.isPasswordVisible.value,
-                            showVisibilityToggle: true,
-                            onVisibilityToggle: controller.togglePasswordVisibility,
-                          ),
-                        ),
+                              Obx(
+                                () => GlassTextField(
+                                  hintText: "Password",
+                                  controller: controller.passwordController,
+                                  obscureText: !controller.isPasswordVisible.value,
+                                  showVisibilityToggle: true,
+                                  onVisibilityToggle: controller.togglePasswordVisibility,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter your password';
+                                    }
+                                    if (value.length < 6) {
+                                      return 'Password must be at least 6 characters';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
 
-                        CustomSpacer(height: size.height * 0.015),
-
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: Text(
-                            "Forgot Password?",
-                            style: AppTextStyles.getBody(context).copyWith(
-                              color: Colors.white70,
-                            ),
+                              CustomSpacer(height: size.height * 0.015),
+                            ],
                           ),
                         ),
 

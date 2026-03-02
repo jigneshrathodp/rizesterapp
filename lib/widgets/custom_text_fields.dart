@@ -177,13 +177,14 @@ class GlassTextField extends StatelessWidget {
       borderRadius: radius,
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: TextField(
+        child: TextFormField(
           controller: controller,
           obscureText: obscureText,
           keyboardType: keyboardType,
           textInputAction: textInputAction,
           onChanged: onChanged,
-          onSubmitted: onSubmitted,
+          onFieldSubmitted: onSubmitted,
+          validator: validator,
           style: TextStyle(
             fontSize: fontSize ?? ResponsiveConfig.responsiveFont(context, 16),
             fontWeight: fontWeight ?? FontWeight.normal,
@@ -219,6 +220,18 @@ class GlassTextField extends StatelessWidget {
             focusedBorder: OutlineInputBorder(
               borderRadius: radius,
               borderSide: BorderSide.none,
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: radius,
+              borderSide: const BorderSide(color: Colors.red),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: radius,
+              borderSide: const BorderSide(color: Colors.red, width: 2),
+            ),
+            errorStyle: const TextStyle(
+              color: Colors.red,
+              backgroundColor: Colors.black54,
             ),
           ),
         ),

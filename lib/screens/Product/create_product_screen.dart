@@ -13,12 +13,6 @@ class CreateProductScreen extends StatelessWidget {
     
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CustomAppBar(
-        title: 'Create Product',
-        onBackPressed: () => Get.back(),
-        showNotifications: false,
-        showProfile: false,
-      ),
       body: CustomScrollWidget(
         children: [
           Padding(

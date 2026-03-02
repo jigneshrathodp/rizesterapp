@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rizesterapp/screens/Profile/login_screen.dart';
+import 'package:rizesterapp/screens/dashboard_screen.dart';
+import 'package:rizesterapp/screens/main_screen.dart';
 import 'package:rizesterapp/widgets/widgets.dart';
 import 'package:device_preview/device_preview.dart';
 
@@ -55,15 +57,11 @@ class MyApp extends StatelessWidget {
           },
         ),
       ),
-      home: LayoutBuilder(
-        builder: (context, constraints) {
-          return ResponsiveLayout(
-            mobile: LoginScreen(),
-            tablet: LoginScreen(),
-            desktop: LoginScreen(),
-          );
-        },
-      ),
+      initialRoute: '/login',
+      getPages: [
+        GetPage(name: '/login', page: () => const LoginScreen()),
+        GetPage(name: '/dashboard', page: () => const MainScreen()),
+      ],
       debugShowCheckedModeBanner: false,
       defaultTransition: Transition.noTransition,
     );

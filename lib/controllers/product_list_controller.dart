@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../screens/Product/create_product_screen.dart';
+import '../screens/Product/update_product_screen.dart';
 
 class ProductListController extends GetxController {
   final TextEditingController searchController = TextEditingController();
@@ -117,11 +119,11 @@ class ProductListController extends GetxController {
   }
   
   void navigateToCreateProduct() {
-    Get.toNamed('/create-product');
+    Get.to(() => const CreateProductScreen());
   }
   
   void navigateToUpdateProduct(Map<String, dynamic> productData) {
-    Get.toNamed('/update-product', arguments: productData);
+    Get.to(() => UpdateProductScreen(productData: productData));
   }
   
   @override
