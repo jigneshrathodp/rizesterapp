@@ -124,7 +124,34 @@ class ChangePasswordScreen extends StatelessWidget {
                         child: Obx(
                           () => CustomButton(
                             text: 'Change Password',
-                            onPressed: controller.handleSubmit,
+                            onPressed: () async {
+                              await controller.handleSubmit();
+                              
+                              // Show success or error snackbar
+                              if (controller.successMessage.value.isNotEmpty) {
+                                Get.snackbar(
+                                  'Success',
+                                  controller.successMessage.value,
+                                  backgroundColor: Colors.green,
+                                  colorText: Colors.white,
+                                  icon: const Icon(Icons.check_circle, color: Colors.white),
+                                  duration: const Duration(seconds: 3),
+                                );
+                                // Go back after successful password change
+                                Future.delayed(const Duration(seconds: 1), () {
+                                  Get.back();
+                                });
+                              } else if (controller.errorMessage.value.isNotEmpty) {
+                                Get.snackbar(
+                                  'Error',
+                                  controller.errorMessage.value,
+                                  backgroundColor: Colors.red,
+                                  colorText: Colors.white,
+                                  icon: const Icon(Icons.error, color: Colors.white),
+                                  duration: const Duration(seconds: 3),
+                                );
+                              }
+                            },
                             backgroundColor: Colors.black,
                             textColor: Colors.white,
                             isLoading: controller.isLoading.value,
