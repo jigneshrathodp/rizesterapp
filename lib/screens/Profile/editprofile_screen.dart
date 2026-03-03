@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../controllers/edit_profile_controller.dart';
 import '../../utils/responsive_config.dart';
 import '../../widgets/widgets.dart';
@@ -13,15 +14,30 @@ class EditProfileScreen extends StatelessWidget {
     
     return Scaffold(
       backgroundColor: Colors.white,
-      body: CustomScrollWidget(
-        children: [
-          Padding(
-            padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
-            child: Form(
-              key: controller.formKey,
-              child: CustomColumn(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      body: Obx(
+        () => controller.isLoadingProfile.value
+            ? const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(40.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 20),
+                      Text('Loading profile data...'),
+                    ],
+                  ),
+                ),
+              )
+            : CustomScrollWidget(
                 children: [
+                  Padding(
+                    padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
+                    child: Form(
+                      key: controller.formKey,
+                      child: CustomColumn(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                   CustomSpacer(height: 30),
                   
                   // Profile Photo Section
@@ -184,7 +200,7 @@ class EditProfileScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildImageUploadSection(BuildContext context, EditProfileController controller, String label, String imageType, {double height = 150}) {
@@ -211,48 +227,150 @@ class EditProfileScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
                 border: Border.all(color: Colors.grey[300]!),
               ),
-              child: controller.getImageByType(imageType) != null && controller.getImageByType(imageType)!.path.isNotEmpty
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
-                      child: Stack(
-                        children: [
-                          Image.asset(
-                            controller.getImageByType(imageType)!.path,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            height: double.infinity,
-                            errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(context),
-                          ),
-                          // Remove image button
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: GestureDetector(
-                              onTap: () => controller.removeImage(imageType),
-                              child: Container(
-                                width: ResponsiveConfig.responsiveWidth(context, 32),
-                                height: ResponsiveConfig.responsiveWidth(context, 32),
-                                decoration: const BoxDecoration(
-                                  color: Colors.red,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.close,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : _buildImagePlaceholder(context),
+              child: _buildImageContent(context, controller, imageType, height),
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildImageContent(BuildContext context, EditProfileController controller, String imageType, double height) {
+    String? existingImage = controller.getExistingImageByType(imageType);
+    XFile? newImage = controller.getImageByType(imageType);
+    bool isLoading = controller.getImageLoadingState(imageType);
+    
+    // Show loading state
+    if (isLoading) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 8),
+            Text(
+              'Loading image...',
+              style: AppTextStyles.getBody(context).copyWith(
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    // If there's a newly selected image (local file)
+    if (newImage != null && newImage.path.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
+        child: Stack(
+          children: [
+            Image.network(
+              newImage.path,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
+              errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(context),
+            ),
+            // Remove image button
+            Positioned(
+              top: 8,
+              right: 8,
+              child: GestureDetector(
+                onTap: () => controller.removeImage(imageType),
+                child: Container(
+                  width: ResponsiveConfig.responsiveWidth(context, 32),
+                  height: ResponsiveConfig.responsiveWidth(context, 32),
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.close,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
+            // "New" badge
+            Positioned(
+              top: 8,
+              left: 8,
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: ResponsiveConfig.responsivePadding(context, 8),
+                  vertical: ResponsiveConfig.responsivePadding(context, 4),
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'NEW',
+                  style: AppTextStyles.getSmall(context).copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    // If there's an existing image from API
+    if (existingImage != null && existingImage.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
+        child: Stack(
+          children: [
+            Image.network(
+              existingImage,
+              fit: BoxFit.contain,
+              width: double.infinity,
+              height: double.infinity,
+              errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(context),
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Center(
+                  child: CircularProgressIndicator(
+                    value: loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                        : null,
+                  ),
+                );
+              },
+            ),
+            // Remove image button
+            Positioned(
+              top: 8,
+              right: 8,
+              child: GestureDetector(
+                onTap: () => controller.removeImage(imageType),
+                child: Container(
+                  width: ResponsiveConfig.responsiveWidth(context, 32),
+                  height: ResponsiveConfig.responsiveWidth(context, 32),
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.close,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    // No image available
+    return _buildImagePlaceholder(context);
   }
 
   Widget _buildImagePlaceholder(BuildContext context) {

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../utils/responsive_config.dart';
 import '../widgets/widgets.dart';
+import 'main_screen.dart';
+import 'Profile/profile_screen.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -71,8 +74,27 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.find<MainScreenController>();
+    
     return Scaffold(
+      key: controller.scaffoldKey,
       backgroundColor: Colors.white,
+      appBar: CustomAppBar(
+        logoAsset: 'assets/black.png',
+        onMenuPressed: () => controller.scaffoldKey.currentState?.openDrawer(),
+        onNotificationPressed: () {},
+        onProfilePressed: () => Get.to(() => const ProfileScreen()),
+      ),
+      drawer: SizedBox(
+        width: ResponsiveConfig.getWidth(context) * 0.6,
+        child: Obx(
+          () => CustomDrawer(
+            selectedIndex: controller.selectedIndex.value,
+            onItemTapped: controller.onItemTapped,
+            logoAsset: 'assets/white.png',
+          ),
+        ),
+      ),
       body: CustomScrollWidget(
         children: [
           const ScreenTitle(title: 'Notifications'),

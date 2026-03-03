@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rizesterapp/screens/Advertise/create_ad_screen.dart';
+import 'package:rizesterapp/screens/dashboard_screen.dart';
 import 'package:rizesterapp/screens/Profile/login_screen.dart';
 import 'package:rizesterapp/screens/main_screen.dart';
 import 'package:rizesterapp/screens/splash_screen.dart';
@@ -65,7 +65,7 @@ class MyApp extends StatelessWidget {
       getPages: [
         GetPage(name: '/login', page: () => const LoginScreen()),
         GetPage(name: '/main', page: () => const MainScreen()),
-        GetPage(name: '/dashboard', page: () => const CreateAdScreen()),
+        GetPage(name: '/dashboard', page: () => const DashboardScreen(showAppBar: true)),
       ],
       debugShowCheckedModeBanner: false,
       defaultTransition: Transition.noTransition,

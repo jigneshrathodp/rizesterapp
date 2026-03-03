@@ -5,6 +5,7 @@ import '../App_model/profile_model/GetProfileModel.dart';
 import '../App_model/profile_model/UpdateProfileModel.dart';
 import '../App_model/profile_model/ResetPasswordModel.dart';
 import '../App_model/profile_model/LogoutModel.dart';
+import '../App_model/profile_model/GetDashboardModel.dart';
 
 // Login Future Builder Widget
 class LoginFutureBuilder extends StatelessWidget {
@@ -161,6 +162,38 @@ class LogoutFutureBuilder extends StatelessWidget {
   Widget build(BuildContext context) {
     return FutureBuilder<LogoutModel>(
       future: AuthService.logout(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return onLoading();
+        } else if (snapshot.hasError) {
+          return onError(snapshot.error.toString());
+        } else if (snapshot.hasData) {
+          return onSuccess(snapshot.data!);
+        } else {
+          return onError('Unknown error occurred');
+        }
+      },
+    );
+  }
+}
+
+// Dashboard Future Builder Widget
+class DashboardFutureBuilder extends StatelessWidget {
+  final Widget Function(GetDashboardModel) onSuccess;
+  final Widget Function(String) onError;
+  final Widget Function() onLoading;
+
+  const DashboardFutureBuilder({
+    Key? key,
+    required this.onSuccess,
+    required this.onError,
+    required this.onLoading,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<GetDashboardModel>(
+      future: AuthService.getDashboard(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return onLoading();

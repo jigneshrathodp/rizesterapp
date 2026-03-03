@@ -6,6 +6,7 @@ import '../App_model/profile_model/GetProfileModel.dart';
 import '../App_model/profile_model/UpdateProfileModel.dart';
 import '../App_model/profile_model/ResetPasswordModel.dart';
 import '../App_model/profile_model/LogoutModel.dart';
+import '../App_model/profile_model/GetDashboardModel.dart';
 
 class ApiService {
   static const String baseUrl = ApiUrls.baseUrl;
@@ -127,6 +128,24 @@ class ApiService {
       }
     } catch (e) {
       throw Exception('Reset password error: $e');
+    }
+  }
+
+  // Get Dashboard API
+  static Future<GetDashboardModel> getDashboard(String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse(ApiUrls.dashboard),
+        headers: _getHeaders(token: token),
+      );
+
+      if (response.statusCode == 200) {
+        return GetDashboardModel.fromJson(json.decode(response.body));
+      } else {
+        throw Exception('Failed to get dashboard: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Dashboard error: $e');
     }
   }
 }

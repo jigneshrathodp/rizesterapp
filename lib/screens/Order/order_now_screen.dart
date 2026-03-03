@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:rizesterapp/screens/Order/product_details_screen.dart';
 import '../../utils/responsive_config.dart';
 import '../../widgets/widgets.dart';
-import '../../widgets/widgets.dart';
 import 'package:get/get.dart';
 import 'package:rizesterapp/screens/main_screen.dart';
 import '../notification_screen.dart' as notification;

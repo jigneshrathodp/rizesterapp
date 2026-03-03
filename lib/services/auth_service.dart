@@ -6,6 +6,7 @@ import '../App_model/profile_model/GetProfileModel.dart';
 import '../App_model/profile_model/UpdateProfileModel.dart';
 import '../App_model/profile_model/ResetPasswordModel.dart';
 import '../App_model/profile_model/LogoutModel.dart';
+import '../App_model/profile_model/GetDashboardModel.dart';
 
 class AuthService {
   static const String _tokenKey = 'auth_token';
@@ -128,5 +129,20 @@ class AuthService {
   static Future<bool> isLoggedIn() async {
     String? token = await getToken();
     return token != null && token.isNotEmpty;
+  }
+
+  // Get Dashboard data
+  static Future<GetDashboardModel> getDashboard() async {
+    try {
+      String? token = await getToken();
+      
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+      
+      return await ApiService.getDashboard(token);
+    } catch (e) {
+      throw Exception('Failed to get dashboard: $e');
+    }
   }
 }

@@ -1,129 +1,231 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart' hide GetStringUtils;
 import '../widgets/widgets.dart';
-
+import '../widgets/auth_future_builder.dart';
+import '../utils/responsive_config.dart';
+import '../App_model/profile_model/GetDashboardModel.dart';
+import 'Profile/profile_screen.dart';
+import 'main_screen.dart';
+import 'notification_screen.dart' as notification;
 
 class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
-
-  final List<Map<String, dynamic>> dashboardItems = const [
-    {
-      'title': 'Total Category',
-      'value': '10',
-      'icon': Icons.category, // Category icon for product categories
-    },
-    {
-      'title': 'Total Products',
-      'value': '25',
-      'icon': Icons.shopping_bag, // Shopping bag icon for products
-    },
-    {
-      'title': 'Total Orders',
-      'value': '150',
-      'icon': Icons.list_alt, // List icon for orders
-    },
-    {
-      'title': 'Pending Orders',
-      'value': '5',
-      'icon': Icons.pending_actions, // Pending icon for pending orders
-    },
-    {
-      'title': 'Completed Orders',
-      'value': '145',
-      'icon': Icons.check_circle, // Check icon for completed orders
-    },
-    {
-      'title': 'Total Revenue',
-      'value': '\$5,000',
-      'icon': Icons.attach_money, // Money icon for revenue
-    },
-    {
-      'title': 'Active Users',
-      'value': '50',
-      'icon': Icons.people, // People icon for users
-    },
-    {
-      'title': 'Notifications',
-      'value': '12',
-      'icon': Icons.notifications, // Bell icon for notifications
-    },
-  ];
+  final bool showAppBar;
+  const DashboardScreen({super.key, this.showAppBar = false});
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.find<MainScreenController>();
+    
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
+      appBar: showAppBar
+          ? CustomAppBar(
+              logoAsset: 'assets/black.png',
+              onMenuPressed: () => Scaffold.of(context).openDrawer(),
+              onNotificationPressed: () => Get.to(() => const notification.NotificationScreen()),
+              onProfilePressed: () => Get.to(() => const ProfileScreen()),
+            )
+          : null,
+      drawer: showAppBar
+          ? SizedBox(
+              width: ResponsiveConfig.getWidth(context) * 0.6,
+              child: Obx(
+                () => CustomDrawer(
+                  selectedIndex: controller.selectedIndex.value,
+                  onItemTapped: controller.onItemTapped,
+                  logoAsset: 'assets/white.png',
+                ),
+              ),
+            )
+          : null,
+      body: CustomScrollWidget(
         children: [
           const ScreenTitle(title: 'Dashboard'),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: dashboardItems.map((item) {
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.black,
-                        width: 0.2,
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          // Big Icon Container
-                          Container(
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              item['icon'],
-                              color: Colors.white,
-                              size: 30,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          // Text Column
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item['title'],
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey,
-                                    fontWeight: FontWeight.normal,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  item['value'],
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.normal,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+          Padding(
+            padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
+            child: DashboardFutureBuilder(
+              onLoading: () => const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(40.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 20),
+                      Text('Loading dashboard data...'),
+                    ],
+                  ),
+                ),
+              ),
+              onError: (error) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to load dashboard: $error'),
+                      backgroundColor: Colors.red,
                     ),
                   );
-                }).toList(),
-              ),
+                });
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error_outline, size: 50, color: Colors.grey[400]),
+                      SizedBox(height: 10),
+                      Text(
+                        'Failed to load dashboard',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                      SizedBox(height: 10),
+                      TextButton(
+                        onPressed: () => Get.reload(),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              onSuccess: (dashboardModel) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Dashboard loaded successfully'),
+                    ),
+                  );
+                });
+                return _buildDashboardStats(context, dashboardModel);
+              },
             ),
           ),
         ],
       ),
     );
   }
+
+  Widget _buildDashboardStats(BuildContext context, GetDashboardModel dashboardModel) {
+    final stats = dashboardModel.data?.stats;
+    
+    return CustomColumn(
+      children: [
+        // Stats Grid
+        _buildStatsGrid(context, stats),
+        
+        CustomSpacer(height: ResponsiveConfig.spacingLg(context)),
+      ],
+    );
+  }
+
+  Widget _buildStatsGrid(BuildContext context, Stats? stats) {
+    final List<Map<String, dynamic>> statItems = [
+      {
+        'title': 'Total Categories',
+        'value': '${stats?.totalCategories ?? 0}',
+        'icon': Icons.category,
+      },
+      {
+        'title': 'Total Products',
+        'value': '${stats?.totalProducts ?? 0}',
+        'icon': Icons.shopping_bag,
+      },
+      {
+        'title': 'Total Orders',
+        'value': '${stats?.totalOrders ?? 0}',
+        'icon': Icons.list_alt,
+      },
+      {
+        'title': 'This Month Orders',
+        'value': '${stats?.currentMonthOrders ?? 0}',
+        'icon': Icons.calendar_today,
+      },
+      {
+        'title': 'Sold Products',
+        'value': '${stats?.totalSoldProducts ?? 0}',
+        'icon': Icons.sell,
+      },
+      {
+        'title': 'Total Product Cost',
+        'value': '₹${stats?.totalProductCost ?? 0}',
+        'icon': Icons.calculate,
+      },
+      {
+        'title': 'Total Revenue',
+        'value': '₹${stats?.totalSoldPrice ?? 0}',
+        'icon': Icons.currency_rupee,
+      },
+      {
+        'title': 'Advertisements',
+        'value': '${stats?.totalAdvertisements ?? 0}',
+        'icon': Icons.campaign,
+      },
+      {
+        'title': 'Ad Revenue',
+        'value': '₹${stats?.totalAdvertisePrice ?? 0}',
+        'icon': Icons.currency_rupee,
+      },
+    ];
+
+    return Column(
+      children: statItems.map((item) => _buildStatCard(context, item)).toList(),
+    );
+  }
+
+  Widget _buildStatCard(BuildContext context, Map<String, dynamic> item) {
+    return Container(
+      margin: EdgeInsets.only(bottom: ResponsiveConfig.spacingMd(context)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
+        border: Border.all(
+          color: Colors.black,
+          width: 0.2,
+        ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
+        child: Row(
+          children: [
+            Container(
+              width: ResponsiveConfig.responsiveWidth(context, 60),
+              height: ResponsiveConfig.responsiveHeight(context, 60),
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
+              ),
+              child: Icon(
+                item['icon'],
+                color: Colors.white,
+                size: ResponsiveConfig.responsiveFont(context, 30),
+              ),
+            ),
+            CustomSpacer(width: ResponsiveConfig.spacingMd(context)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item['title'],
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                  CustomSpacer(height: ResponsiveConfig.spacing2xs(context)),
+                  Text(
+                    item['value'],
+                    style: const TextStyle(
+                      fontSize: 24,
+                      color: Colors.black,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 }
