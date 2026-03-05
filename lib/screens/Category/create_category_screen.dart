@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../controllers/create_category_controller.dart';
 import '../../utils/responsive_config.dart';
 import '../../widgets/widgets.dart';
@@ -82,8 +84,8 @@ class _CreateCategoryScreenState extends State<CreateCategoryScreen> {
                                 borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
                                 child: Stack(
                                   children: [
-                                    Image.asset(
-                                      controller.selectedImage.value!.path,
+                                    Image.file(
+                                      File(controller.selectedImage.value!.path),
                                       fit: BoxFit.cover,
                                       width: double.infinity,
                                       height: double.infinity,
@@ -151,25 +153,6 @@ class _CreateCategoryScreenState extends State<CreateCategoryScreen> {
                       }
                       if (value.length < 3) {
                         return 'SKU must be at least 3 characters';
-                      }
-                      return null;
-                    },
-                  ),
-                  
-                  CustomSpacer(height: 16),
-                  
-                  // Barcode
-                  CustomTextField(
-                    controller: controller.barcodeController,
-                    labelText: 'Barcode',
-                    hintText: 'Enter barcode',
-                    prefixIcon: const Icon(Icons.qr_code_scanner),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter barcode';
-                      }
-                      if (value.length < 8) {
-                        return 'Barcode must be at least 8 characters';
                       }
                       return null;
                     },

@@ -51,6 +51,7 @@ class ChangePasswordController extends GetxController {
         ResetPasswordModel result = await AuthService.resetPassword(
           oldPasswordController.text,
           newPasswordController.text,
+          confirmPasswordController.text,
         );
 
         if (result.status == true) {
@@ -64,7 +65,25 @@ class ChangePasswordController extends GetxController {
           errorMessage.value = result.message ?? 'Failed to change password';
         }
       } catch (e) {
-        errorMessage.value = 'Password change failed: $e';
+        String errorString = e.toString();
+        
+        // Check if it's a 401 unauthorized error
+        if (errorString.contains('Unauthorized') || errorString.contains('401')) {
+          // Clear auth data and redirect to login
+          await AuthService.clearAuthData();
+          errorMessage.value = 'Session expired. Please login again.';
+          
+          // Redirect to login screen after a short delay
+          Future.delayed(const Duration(seconds: 2), () {
+            Get.offAllNamed('/login'); // Clear all routes and go to login
+          });
+        } else if (errorString.contains('Validation error')) {
+          // Handle validation errors more gracefully
+          String validationError = errorString.replaceFirst('Exception: Validation error: ', '');
+          errorMessage.value = validationError;
+        } else {
+          errorMessage.value = 'Password change failed: $e';
+        }
       } finally {
         isLoading.value = false;
       }

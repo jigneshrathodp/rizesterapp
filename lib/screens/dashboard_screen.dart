@@ -12,6 +12,24 @@ class DashboardScreen extends StatelessWidget {
   final bool showAppBar;
   const DashboardScreen({super.key, this.showAppBar = false});
 
+  static void _handleDrawerNavigation(int index) {
+    Get.back(); // Close drawer first
+    
+    if (index == 0) {
+      // Already on dashboard, do nothing
+      return;
+    }
+    
+    // Navigate to MainScreen with the selected index
+    Get.off(() => const MainScreen());
+    
+    // Use a small delay to ensure MainScreen is loaded before changing index
+    Future.delayed(const Duration(milliseconds: 100), () {
+      final controller = Get.find<MainScreenController>();
+      controller.onItemTapped(index);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<MainScreenController>();
@@ -19,9 +37,8 @@ class DashboardScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: showAppBar
-          ? CustomAppBar(
+          ? _CustomAppBarWrapper(
               logoAsset: 'assets/black.png',
-              onMenuPressed: () => Scaffold.of(context).openDrawer(),
               onNotificationPressed: () => Get.to(() => const notification.NotificationScreen()),
               onProfilePressed: () => Get.to(() => const ProfileScreen()),
             )
@@ -29,75 +46,82 @@ class DashboardScreen extends StatelessWidget {
       drawer: showAppBar
           ? SizedBox(
               width: ResponsiveConfig.getWidth(context) * 0.6,
-              child: Obx(
-                () => CustomDrawer(
-                  selectedIndex: controller.selectedIndex.value,
-                  onItemTapped: controller.onItemTapped,
-                  logoAsset: 'assets/white.png',
-                ),
+              child: CustomDrawer(
+                selectedIndex: 0, // Dashboard is always selected
+                onItemTapped: DashboardScreen._handleDrawerNavigation,
+                logoAsset: 'assets/white.png',
               ),
             )
           : null,
-      body: CustomScrollWidget(
-        children: [
-          const ScreenTitle(title: 'Dashboard'),
-          Padding(
-            padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
-            child: DashboardFutureBuilder(
-              onLoading: () => const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(40.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 20),
-                      Text('Loading dashboard data...'),
-                    ],
+      body: SafeArea(
+        child: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
+          child: KeyboardAvoider(
+            child: CustomScrollWidget(
+              children: [
+                const ScreenTitle(title: 'Dashboard'),
+                Padding(
+                  padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
+                  child: DashboardFutureBuilder(
+                  onLoading: () => const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(40.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 20),
+                          Text('Loading dashboard data...'),
+                        ],
+                      ),
+                    ),
                   ),
+                  onError: (error) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Failed to load dashboard: $error'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    });
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.error_outline, size: 50, color: Colors.grey[400]),
+                          SizedBox(height: 10),
+                          Text(
+                            'Failed to load dashboard',
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                          SizedBox(height: 10),
+                          TextButton(
+                            onPressed: () => Get.reload(),
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  onSuccess: (dashboardModel) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Dashboard loaded successfully'),
+                        ),
+                      );
+                    });
+                    return _buildDashboardStats(context, dashboardModel);
+                  },
                 ),
               ),
-              onError: (error) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Failed to load dashboard: $error'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                });
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline, size: 50, color: Colors.grey[400]),
-                      SizedBox(height: 10),
-                      Text(
-                        'Failed to load dashboard',
-                        style: TextStyle(color: Colors.grey[600]),
-                      ),
-                      SizedBox(height: 10),
-                      TextButton(
-                        onPressed: () => Get.reload(),
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
-                );
-              },
-              onSuccess: (dashboardModel) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Dashboard loaded successfully'),
-                    ),
-                  );
-                });
-                return _buildDashboardStats(context, dashboardModel);
-              },
-            ),
+            ],
           ),
-        ],
+        ),
+        ),
       ),
     );
   }
@@ -228,4 +252,31 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
+}
+
+class _CustomAppBarWrapper extends StatelessWidget implements PreferredSizeWidget {
+  final String logoAsset;
+  final VoidCallback onNotificationPressed;
+  final VoidCallback onProfilePressed;
+
+  const _CustomAppBarWrapper({
+    required this.logoAsset,
+    required this.onNotificationPressed,
+    required this.onProfilePressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Builder(
+      builder: (context) => CustomAppBar(
+        logoAsset: logoAsset,
+        onMenuPressed: () => Scaffold.of(context).openDrawer(),
+        onNotificationPressed: onNotificationPressed,
+        onProfilePressed: onProfilePressed,
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }

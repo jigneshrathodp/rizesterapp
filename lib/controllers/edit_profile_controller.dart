@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import '../services/auth_service.dart';
 import '../App_model/profile_model/GetProfileModel.dart';
 import '../App_model/profile_model/UpdateProfileModel.dart';
+import 'global_profile_controller.dart';
 
 class EditProfileController extends GetxController {
   final formKey = GlobalKey<FormState>();
@@ -48,9 +49,12 @@ class EditProfileController extends GetxController {
   Future<void> loadProfileData() async {
     isLoadingProfile.value = true;
     try {
+      print('Loading profile data...');
       profileData.value = await AuthService.getProfileDetails();
+      print('Profile data loaded: ${profileData.value?.toJson()}');
       
       if (profileData.value?.user != null) {
+        print('User data found: ${profileData.value!.user!.toJson()}');
         nameController.text = profileData.value!.user!.name ?? '';
         emailController.text = profileData.value!.user!.email ?? '';
         contactController.text = profileData.value!.user!.contact ?? '';
@@ -58,10 +62,12 @@ class EditProfileController extends GetxController {
         // Load existing profile photo if available
         if (profileData.value!.user!.image != null && profileData.value!.user!.image!.isNotEmpty) {
           existingProfilePhoto.value = profileData.value!.user!.image;
+          print('Profile photo: ${existingProfilePhoto.value}');
         }
       }
       
       if (profileData.value?.details != null) {
+        print('Details data found: ${profileData.value!.details!.toJson()}');
         siteNameController.text = profileData.value!.details!.siteName ?? '';
         addressController.text = profileData.value!.details!.address ?? '';
         footerController.text = profileData.value!.details!.footer ?? '';
@@ -69,15 +75,28 @@ class EditProfileController extends GetxController {
         // Load existing site images if available
         if (profileData.value!.details!.favIcon != null && profileData.value!.details!.favIcon!.isNotEmpty) {
           existingFavIcon.value = profileData.value!.details!.favIcon;
+          print('Fav icon: ${existingFavIcon.value}');
         }
         if (profileData.value!.details!.logoLight != null && profileData.value!.details!.logoLight!.isNotEmpty) {
           existingLogoLight.value = profileData.value!.details!.logoLight;
+          print('Logo light: ${existingLogoLight.value}');
         }
         if (profileData.value!.details!.logoDark != null && profileData.value!.details!.logoDark!.isNotEmpty) {
           existingLogoDark.value = profileData.value!.details!.logoDark;
+          print('Logo dark: ${existingLogoDark.value}');
         }
       }
+      
+      print('Form controllers updated:');
+      print('Name: ${nameController.text}');
+      print('Email: ${emailController.text}');
+      print('Contact: ${contactController.text}');
+      print('Site Name: ${siteNameController.text}');
+      print('Address: ${addressController.text}');
+      print('Footer: ${footerController.text}');
+      
     } catch (e) {
+      print('Error loading profile data: $e');
       errorMessage.value = 'Failed to load profile: $e';
     } finally {
       isLoadingProfile.value = false;
@@ -117,16 +136,16 @@ class EditProfileController extends GetxController {
         
         // Add image data if new images are selected
         if (profilePhoto.value != null && profilePhoto.value!.path.isNotEmpty) {
-          profileDataMap['profile_photo'] = profilePhoto.value!.path;
+          profileDataMap['image'] = profilePhoto.value;
         }
         if (favIcon.value != null && favIcon.value!.path.isNotEmpty) {
-          profileDataMap['fav_icon'] = favIcon.value!.path;
+          profileDataMap['fav_icon'] = favIcon.value;
         }
         if (logoLight.value != null && logoLight.value!.path.isNotEmpty) {
-          profileDataMap['logo_light'] = logoLight.value!.path;
+          profileDataMap['logo_light'] = logoLight.value;
         }
         if (logoDark.value != null && logoDark.value!.path.isNotEmpty) {
-          profileDataMap['logo_dark'] = logoDark.value!.path;
+          profileDataMap['logo_dark'] = logoDark.value;
         }
         
         UpdateProfileModel result = await AuthService.updateProfile(profileDataMap);
@@ -135,6 +154,8 @@ class EditProfileController extends GetxController {
           successMessage.value = result.message ?? 'Profile updated successfully';
           // Reload profile data to reflect changes
           await loadProfileData();
+          // Refresh global profile data
+          await GlobalProfileController.to.refreshProfileData();
           // Clear newly selected images after successful update
           clearNewImages();
           // Show success message

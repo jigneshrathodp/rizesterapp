@@ -7,6 +7,11 @@ import '../App_model/profile_model/UpdateProfileModel.dart';
 import '../App_model/profile_model/ResetPasswordModel.dart';
 import '../App_model/profile_model/LogoutModel.dart';
 import '../App_model/profile_model/GetDashboardModel.dart';
+import '../App_model/Category_model/GetCatgoryModel.dart';
+import '../App_model/Category_model/CreateCategoryModel.dart';
+import '../App_model/Category_model/UpdateCategoryModel.dart';
+import '../App_model/Category_model/DeleteCategoryModel.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AuthService {
   static const String _tokenKey = 'auth_token';
@@ -111,6 +116,7 @@ class AuthService {
   static Future<ResetPasswordModel> resetPassword(
     String currentPassword,
     String newPassword,
+    String confirmPassword,
   ) async {
     try {
       String? token = await getToken();
@@ -119,7 +125,7 @@ class AuthService {
         throw Exception('No authentication token found');
       }
       
-      return await ApiService.resetPassword(token, currentPassword, newPassword);
+      return await ApiService.resetPassword(token, currentPassword, newPassword, confirmPassword);
     } catch (e) {
       throw Exception('Failed to reset password: $e');
     }
@@ -143,6 +149,91 @@ class AuthService {
       return await ApiService.getDashboard(token);
     } catch (e) {
       throw Exception('Failed to get dashboard: $e');
+    }
+  }
+  
+  // Get categories
+  static Future<GetCatgoryModel> getCategoryList() async {
+    try {
+      String? token = await getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+      return await ApiService.getCategoryList(token);
+    } catch (e) {
+      throw Exception('Failed to get categories: $e');
+    }
+  }
+  
+  // Create category
+  static Future<CreateCategoryModel> createCategory({
+    required String name,
+    required String skubarCode,
+    XFile? image,
+  }) async {
+    try {
+      String? token = await getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+      return await ApiService.createCategory(
+        token,
+        name: name,
+        skubarCode: skubarCode,
+        image: image,
+      );
+    } catch (e) {
+      throw Exception('Failed to create category: $e');
+    }
+  }
+  
+  // View category by ID
+  static Future<UpdateCategoryModel> getCategoryById(int id) async {
+    try {
+      String? token = await getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+      return await ApiService.getCategoryById(token, id);
+    } catch (e) {
+      throw Exception('Failed to get category: $e');
+    }
+  }
+  
+  // Update category
+  static Future<UpdateCategoryModel> updateCategory({
+    required int id,
+    required String name,
+    required String skubarCode,
+    XFile? image,
+  }) async {
+    try {
+      String? token = await getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+      return await ApiService.updateCategory(
+        token,
+        id: id,
+        name: name,
+        skubarCode: skubarCode,
+        image: image,
+      );
+    } catch (e) {
+      throw Exception('Failed to update category: $e');
+    }
+  }
+  
+  // Delete category
+  static Future<DeleteCategoryModel> deleteCategory(int id) async {
+    try {
+      String? token = await getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+      return await ApiService.deleteCategory(token, id);
+    } catch (e) {
+      throw Exception('Failed to delete category: $e');
     }
   }
 }

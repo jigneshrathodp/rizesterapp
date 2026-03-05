@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/responsive_config.dart';
+import '../controllers/global_profile_controller.dart';
+import 'package:get/get.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
@@ -19,6 +21,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool showNotifications;
   final bool showProfile;
   final String? logoAsset;
+  final String? profileImageUrl;
 
   const CustomAppBar({
     super.key,
@@ -39,6 +42,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.showNotifications = true,
     this.showProfile = true,
     this.logoAsset,
+    this.profileImageUrl,
   });
 
   @override
@@ -83,13 +87,41 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 onPressed: onNotificationPressed ?? () {},
               ),
             if (showProfile)
-              IconButton(
-                icon: Icon(
-                  Icons.account_circle,
-                  color: foregroundColor ?? Colors.black,
-                  size: iconSize,
+              Obx(
+                () => IconButton(
+                  icon: GlobalProfileController.to.hasProfileImage && 
+                        GlobalProfileController.to.profileImageUrl.isNotEmpty
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(iconSize / 2),
+                          child: Image.network(
+                            GlobalProfileController.to.profileImageUrl,
+                            width: iconSize,
+                            height: iconSize,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                Icons.account_circle,
+                                color: foregroundColor ?? Colors.black,
+                                size: iconSize,
+                              );
+                            },
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Icon(
+                                Icons.account_circle,
+                                color: foregroundColor ?? Colors.black,
+                                size: iconSize,
+                              );
+                            },
+                          ),
+                        )
+                      : Icon(
+                          Icons.account_circle,
+                          color: foregroundColor ?? Colors.black,
+                          size: iconSize,
+                        ),
+                  onPressed: onProfilePressed ?? () {},
                 ),
-                onPressed: onProfilePressed ?? () {},
               ),
           ],
     );
@@ -118,6 +150,7 @@ class CustomSliverAppBar extends StatelessWidget {
   final bool showNotifications;
   final bool showProfile;
   final String? logoAsset;
+  final String? profileImageUrl;
 
   const CustomSliverAppBar({
     super.key,
@@ -139,6 +172,7 @@ class CustomSliverAppBar extends StatelessWidget {
     this.showNotifications = true,
     this.showProfile = true,
     this.logoAsset,
+    this.profileImageUrl,
   });
 
   @override
@@ -185,13 +219,41 @@ class CustomSliverAppBar extends StatelessWidget {
                 onPressed: onNotificationPressed ?? () {},
               ),
             if (showProfile)
-              IconButton(
-                icon: Icon(
-                  Icons.account_circle,
-                  color: foregroundColor ?? Colors.black,
-                  size: iconSize,
+              Obx(
+                () => IconButton(
+                  icon: GlobalProfileController.to.hasProfileImage && 
+                        GlobalProfileController.to.profileImageUrl.isNotEmpty
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(iconSize / 2),
+                          child: Image.network(
+                            GlobalProfileController.to.profileImageUrl,
+                            width: iconSize,
+                            height: iconSize,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                Icons.account_circle,
+                                color: foregroundColor ?? Colors.black,
+                                size: iconSize,
+                              );
+                            },
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Icon(
+                                Icons.account_circle,
+                                color: foregroundColor ?? Colors.black,
+                                size: iconSize,
+                              );
+                            },
+                          ),
+                        )
+                      : Icon(
+                          Icons.account_circle,
+                          color: foregroundColor ?? Colors.black,
+                          size: iconSize,
+                        ),
+                  onPressed: onProfilePressed ?? () {},
                 ),
-                onPressed: onProfilePressed ?? () {},
               ),
           ],
     );

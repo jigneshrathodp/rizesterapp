@@ -23,19 +23,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final favIconLoading = false.obs;
   final logoLightLoading = false.obs;
   final logoDarkLoading = false.obs;
+  
+  // Key to force FutureBuilder rebuild
+  int _profileKey = 0;
+  
+  // Flag to track if refresh is needed
+  bool _needsRefresh = true;
 
-  void _refreshProfile() {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Auto-refresh only when needed (e.g., returning from edit profile)
+    if (_needsRefresh) {
+      _needsRefresh = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _refreshProfile(showSnackbar: false); // Don't show snackbar on auto-refresh
+      });
+    }
+  }
+
+  void _refreshProfile({bool showSnackbar = true}) {
     setState(() {
-      // This will trigger a rebuild of the FutureBuilder
+      // Increment key to force FutureBuilder to recreate and fetch fresh data
+      _profileKey++;
     });
     
-    Get.snackbar(
-      'Refreshing',
-      'Loading profile data...',
-      backgroundColor: Colors.blue,
-      colorText: Colors.white,
-      duration: const Duration(seconds: 2),
-    );
+    if (showSnackbar) {
+      Get.snackbar(
+        'Refreshing',
+        'Loading profile data...',
+        backgroundColor: Colors.blue,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+    }
   }
 
   bool getImageLoadingState(String imageType) {
@@ -72,26 +93,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<MainScreenController>();
+    final controller = Get.isRegistered<MainScreenController>()
+        ? Get.find<MainScreenController>()
+        : null;
+    final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
     
     return Scaffold(
-      key: controller.scaffoldKey,
+      key: _scaffoldKey,
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
         logoAsset: 'assets/black.png',
-        onMenuPressed: () => controller.scaffoldKey.currentState?.openDrawer(),
+        onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
         onNotificationPressed: () => Get.to(() => const notification.NotificationScreen()),
         onProfilePressed: () {},
       ),
       drawer: SizedBox(
         width: ResponsiveConfig.getWidth(context) * 0.6,
-        child: Obx(
-          () => CustomDrawer(
-            selectedIndex: controller.selectedIndex.value,
-            onItemTapped: controller.onItemTapped,
-            logoAsset: 'assets/white.png',
-          ),
-        ),
+        child: (controller != null)
+            ? Obx(
+                () => CustomDrawer(
+                  selectedIndex: controller.selectedIndex.value,
+                  onItemTapped: controller.onItemTapped,
+                  logoAsset: 'assets/white.png',
+                ),
+              )
+            : CustomDrawer(
+                selectedIndex: 0,
+                onItemTapped: (index) {
+                  Navigator.pop(context);
+                  Get.offAll(() => const MainScreen());
+                  Future.microtask(() {
+                    final main = Get.find<MainScreenController>();
+                    main.onItemTapped(index);
+                  });
+                },
+                logoAsset: 'assets/white.png',
+              ),
       ),
       body: CustomScrollWidget(
         children: [
@@ -108,7 +145,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     IconButton(
-                      onPressed: _refreshProfile,
+                      onPressed: () {
+                        _needsRefresh = true;
+                        _refreshProfile();
+                      },
                       icon: const Icon(Icons.refresh),
                       tooltip: 'Refresh Profile',
                     ),
@@ -117,6 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 
                 // Profile Details using FutureBuilder
                 ProfileDetailsFutureBuilder(
+                  key: ValueKey(_profileKey),
                   onLoading: () => const Center(
                     child: Padding(
                       padding: EdgeInsets.all(40.0),
@@ -134,7 +175,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         SizedBox(height: 10),
                         TextButton(
-                          onPressed: _refreshProfile,
+                          onPressed: () {
+                            _needsRefresh = true;
+                            _refreshProfile();
+                          },
                           child: const Text('Retry'),
                         ),
                       ],

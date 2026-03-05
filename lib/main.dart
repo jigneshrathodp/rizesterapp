@@ -5,11 +5,18 @@ import 'package:rizesterapp/screens/Profile/login_screen.dart';
 import 'package:rizesterapp/screens/main_screen.dart';
 import 'package:rizesterapp/screens/splash_screen.dart';
 import 'package:rizesterapp/utils/auth_helper.dart';
+import 'package:rizesterapp/controllers/global_profile_controller.dart';
 
 
 void main() {
   // Initialize AuthHelper
   Get.put(AuthHelper());
+  
+  // Initialize GlobalProfileController
+  Get.put(GlobalProfileController());
+  
+  // Initialize MainScreenController for dashboard access
+  Get.put(MainScreenController());
   
   runApp(
     // DevicePreview(

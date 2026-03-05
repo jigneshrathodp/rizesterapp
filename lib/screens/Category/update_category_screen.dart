@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../utils/responsive_config.dart';
 import '../../widgets/widgets.dart';
 import 'package:get/get.dart';
 import 'package:rizesterapp/screens/main_screen.dart';
 import '../notification_screen.dart' as notification;
 import 'package:rizesterapp/screens/Profile/profile_screen.dart';
+import '../../services/auth_service.dart';
+import '../../App_model/Category_model/UpdateCategoryModel.dart';
 
 class UpdateCategoryScreen extends StatefulWidget {
   final Map<String, dynamic> categoryData;
@@ -22,45 +25,38 @@ class UpdateCategoryScreen extends StatefulWidget {
 }
 
 class _UpdateCategoryScreenState extends State<UpdateCategoryScreen> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late final TextEditingController _skuController;
-  late final TextEditingController _barcodeController;
 
   XFile? _selectedImage;
   bool _isLoading = false;
+  String? _existingImageUrl;
+  late final int _categoryId;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.categoryData['name'] ?? '');
-    _skuController = TextEditingController(text: widget.categoryData['sku'] ?? '');
-    _barcodeController = TextEditingController(text: widget.categoryData['barcode'] ?? '');
-    
-    // Set existing image if available
-    if (widget.categoryData['imageUrl'] != null) {
-      _selectedImage = XFile(widget.categoryData['imageUrl']);
-    }
+    _categoryId = widget.categoryData['id'] ?? 0;
+    _nameController = TextEditingController();
+    _skuController = TextEditingController();
+    _loadCategory();
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _skuController.dispose();
-    _barcodeController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey,
       backgroundColor: Colors.white,
       appBar: widget.showAppBar
-          ? CustomAppBar(
+          ? _UpdateCategoryAppBarWrapper(
               logoAsset: 'assets/black.png',
-              onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
               onNotificationPressed: () => Get.to(() => const notification.NotificationScreen()),
               onProfilePressed: () => Get.to(() => const ProfileScreen()),
             )
@@ -110,14 +106,13 @@ class _UpdateCategoryScreenState extends State<UpdateCategoryScreen> {
                               borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
                               child: Stack(
                                 children: [
-                                  Image.asset(
-                                    _selectedImage!.path,
+                                  Image.file(
+                                    File(_selectedImage!.path),
                                     fit: BoxFit.cover,
                                     width: double.infinity,
                                     height: double.infinity,
                                     errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(context),
                                   ),
-                                  // Remove image button
                                   Positioned(
                                     top: 8,
                                     right: 8,
@@ -141,7 +136,39 @@ class _UpdateCategoryScreenState extends State<UpdateCategoryScreen> {
                                 ],
                               ),
                             )
-                          : _buildImagePlaceholder(context),
+                          : (_existingImageUrl != null && _existingImageUrl!.isNotEmpty)
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
+                                  child: Image.network(
+                                    _existingImageUrl!,
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                    loadingBuilder: (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Container(
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
+                                          color: Colors.grey[100],
+                                        ),
+                                        child: Center(
+                                          child: SizedBox(
+                                            width: 40,
+                                            height: 40,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 3,
+                                              valueColor: AlwaysStoppedAnimation<Color>(Colors.grey[400]!),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(context),
+                                  ),
+                                )
+                              : _buildImagePlaceholder(context),
                     ),
                   ),
                   
@@ -184,23 +211,6 @@ class _UpdateCategoryScreenState extends State<UpdateCategoryScreen> {
                   ),
                   
                   CustomSpacer(height: 16),
-                  
-                  // Barcode
-                  CustomTextField(
-                    controller: _barcodeController,
-                    labelText: 'Barcode',
-                    hintText: 'Enter barcode',
-                    prefixIcon: const Icon(Icons.qr_code_scanner),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter barcode';
-                      }
-                      if (value.length < 8) {
-                        return 'Barcode must be at least 8 characters';
-                      }
-                      return null;
-                    },
-                  ),
                   
                   CustomSpacer(height: 32),
                   
@@ -309,14 +319,152 @@ class _UpdateCategoryScreenState extends State<UpdateCategoryScreen> {
       setState(() {
         _isLoading = true;
       });
+      _updateCategory();
+    }
+  }
 
-      // Simulate API call
-      Future.delayed(const Duration(seconds: 2), () {
-        setState(() {
-          _isLoading = false;
-        });
+  void _showSuccess() {
+    Get.snackbar(
+      'Success',
+      'Category updated successfully',
+      backgroundColor: Colors.green,
+      colorText: Colors.white,
+      duration: const Duration(seconds: 3),
+    );
+    Get.offAll(() => const MainScreen());
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (!Get.isRegistered<MainScreenController>()) {
+        try {
+          Get.put(MainScreenController());
+        } catch (_) {}
+      }
+      final main = Get.find<MainScreenController>();
+      main.onItemTapped(3);
+    });
+  }
+  
+  Future<void> _loadCategory() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final UpdateCategoryModel model = await AuthService.getCategoryById(_categoryId);
+      if (model.status == true && model.data != null) {
+        _nameController.text = model.data!.name ?? '';
+        _skuController.text = model.data!.skubarCode ?? '';
+        _existingImageUrl = model.data!.image ?? '';
+      } else {
+        Get.snackbar(
+          'Error',
+          model.message ?? 'Failed to load category',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      String errorMessage = 'Failed to load category';
+      
+      // Handle specific server errors
+      if (e.toString().contains('503')) {
+        errorMessage = 'Server is temporarily unavailable. Please try again later.';
+      } else if (e.toString().contains('500')) {
+        errorMessage = 'Server error occurred. Please try again later.';
+      } else if (e.toString().contains('timeout')) {
+        errorMessage = 'Request timed out. Please check your connection and try again.';
+      } else if (e.toString().contains('network')) {
+        errorMessage = 'Network error. Please check your internet connection.';
+      } else if (e.toString().contains('404')) {
+        errorMessage = 'Category not found. It may have been deleted.';
+      } else if (e.toString().contains('401')) {
+        errorMessage = 'Authentication error. Please login again.';
+      } else {
+        // For other errors, try to extract a clean message
+        String errorString = e.toString();
+        if (errorString.contains('Exception:')) {
+          errorString = errorString.split('Exception:').last.trim();
+        }
+        // Remove HTML tags if present
+        errorString = errorString.replaceAll(RegExp(r'<[^>]*>'), '').trim();
         
-        _showSuccessDialog();
+        if (errorString.isNotEmpty && errorString.length < 100) {
+          errorMessage = errorString;
+        }
+      }
+      
+      Get.snackbar(
+        'Error',
+        errorMessage,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+  
+  Future<void> _updateCategory() async {
+    try {
+      final UpdateCategoryModel result = await AuthService.updateCategory(
+        id: _categoryId,
+        name: _nameController.text.trim(),
+        skubarCode: _skuController.text.trim(),
+        image: _selectedImage,
+      );
+      if (result.status == true) {
+        _showSuccess();
+      } else {
+        Get.snackbar(
+          'Error',
+          result.message ?? 'Failed to update category',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      String errorMessage = 'Failed to update category';
+      
+      // Handle specific server errors
+      if (e.toString().contains('503')) {
+        errorMessage = 'Server is temporarily unavailable. Please try again later.';
+      } else if (e.toString().contains('500')) {
+        errorMessage = 'Server error occurred. Please try again later.';
+      } else if (e.toString().contains('timeout')) {
+        errorMessage = 'Request timed out. Please check your connection and try again.';
+      } else if (e.toString().contains('network')) {
+        errorMessage = 'Network error. Please check your internet connection.';
+      } else if (e.toString().contains('422')) {
+        errorMessage = 'Validation error. Please check your input and try again.';
+      } else if (e.toString().contains('401')) {
+        errorMessage = 'Authentication error. Please login again.';
+      } else if (e.toString().contains('404')) {
+        errorMessage = 'Category not found. It may have been deleted.';
+      } else {
+        // For other errors, try to extract a clean message
+        String errorString = e.toString();
+        if (errorString.contains('Exception:')) {
+          errorString = errorString.split('Exception:').last.trim();
+        }
+        // Remove HTML tags if present
+        errorString = errorString.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+        
+        if (errorString.isNotEmpty && errorString.length < 100) {
+          errorMessage = errorString;
+        }
+      }
+      
+      Get.snackbar(
+        'Error',
+        errorMessage,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
       });
     }
   }
@@ -339,4 +487,35 @@ class _UpdateCategoryScreenState extends State<UpdateCategoryScreen> {
       ),
     );
   }
+}
+
+class _UpdateCategoryAppBarWrapper extends StatelessWidget implements PreferredSizeWidget {
+  final String logoAsset;
+  final VoidCallback onNotificationPressed;
+  final VoidCallback onProfilePressed;
+
+  const _UpdateCategoryAppBarWrapper({
+    required this.logoAsset,
+    required this.onNotificationPressed,
+    required this.onProfilePressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Builder(
+      builder: (context) => CustomAppBar(
+        logoAsset: logoAsset,
+        onMenuPressed: () {
+          if (Scaffold.of(context).hasDrawer) {
+            Scaffold.of(context).openDrawer();
+          }
+        },
+        onNotificationPressed: onNotificationPressed,
+        onProfilePressed: onProfilePressed,
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }

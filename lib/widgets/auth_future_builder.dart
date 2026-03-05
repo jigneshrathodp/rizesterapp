@@ -113,6 +113,7 @@ class UpdateProfileFutureBuilder extends StatelessWidget {
 class ResetPasswordFutureBuilder extends StatelessWidget {
   final String currentPassword;
   final String newPassword;
+  final String confirmPassword;
   final Widget Function(ResetPasswordModel) onSuccess;
   final Widget Function(String) onError;
   final Widget Function() onLoading;
@@ -121,6 +122,7 @@ class ResetPasswordFutureBuilder extends StatelessWidget {
     Key? key,
     required this.currentPassword,
     required this.newPassword,
+    required this.confirmPassword,
     required this.onSuccess,
     required this.onError,
     required this.onLoading,
@@ -129,7 +131,7 @@ class ResetPasswordFutureBuilder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<ResetPasswordModel>(
-      future: AuthService.resetPassword(currentPassword, newPassword),
+      future: AuthService.resetPassword(currentPassword, newPassword, confirmPassword),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return onLoading();

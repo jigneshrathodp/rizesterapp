@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../controllers/edit_profile_controller.dart';
 import '../../utils/responsive_config.dart';
 import '../../widgets/widgets.dart';
@@ -265,8 +266,8 @@ class EditProfileScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
         child: Stack(
           children: [
-            Image.network(
-              newImage.path,
+            Image.file(
+              File(newImage.path),
               fit: BoxFit.cover,
               width: double.infinity,
               height: double.infinity,

@@ -14,12 +14,6 @@ class ChangePasswordScreen extends StatelessWidget {
     
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CustomAppBar(
-        logoAsset: 'assets/black.png',
-        onMenuPressed: () => Get.find<MainScreenController>().scaffoldKey.currentState?.openDrawer(),
-        onNotificationPressed: () {},
-        onProfilePressed: () {},
-      ),
       body: CustomScrollWidget(
         children: [
           const ScreenTitle(title: 'Change Password'),

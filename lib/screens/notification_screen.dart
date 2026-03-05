@@ -6,13 +6,15 @@ import 'main_screen.dart';
 import 'Profile/profile_screen.dart';
 
 class NotificationScreen extends StatefulWidget {
-  const NotificationScreen({super.key});
+  final bool showAppBar;
+  const NotificationScreen({super.key, this.showAppBar = false});
 
   @override
   State<NotificationScreen> createState() => _NotificationScreenState();
 }
 
 class _NotificationScreenState extends State<NotificationScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<NotificationItem> _notifications = [
     NotificationItem(
       id: 1,
@@ -74,28 +76,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<MainScreenController>();
-    
-    return Scaffold(
-      key: controller.scaffoldKey,
-      backgroundColor: Colors.white,
-      appBar: CustomAppBar(
-        logoAsset: 'assets/black.png',
-        onMenuPressed: () => controller.scaffoldKey.currentState?.openDrawer(),
-        onNotificationPressed: () {},
-        onProfilePressed: () => Get.to(() => const ProfileScreen()),
-      ),
-      drawer: SizedBox(
-        width: ResponsiveConfig.getWidth(context) * 0.6,
-        child: Obx(
-          () => CustomDrawer(
-            selectedIndex: controller.selectedIndex.value,
-            onItemTapped: controller.onItemTapped,
-            logoAsset: 'assets/white.png',
-          ),
-        ),
-      ),
-      body: CustomScrollWidget(
+    final hasMainController = Get.isRegistered<MainScreenController>();
+    final controller = hasMainController ? Get.find<MainScreenController>() : null;
+
+    if (!widget.showAppBar) {
+      return CustomScrollWidget(
         children: [
           const ScreenTitle(title: 'Notifications'),
           Padding(
@@ -104,8 +89,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomSpacer(height: 20),
-                
-                // Notifications list
                 _notifications.isEmpty
                     ? _buildEmptyState()
                     : CustomColumn(
@@ -124,7 +107,73 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           );
                         }).toList(),
                       ),
-                
+                CustomSpacer(height: 32),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Scaffold(
+      key: _scaffoldKey,
+      backgroundColor: Colors.white,
+      appBar: CustomAppBar(
+        logoAsset: 'assets/black.png',
+        onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
+        onNotificationPressed: () {},
+        onProfilePressed: () => Get.to(() => const ProfileScreen()),
+      ),
+      drawer: SizedBox(
+        width: ResponsiveConfig.getWidth(context) * 0.6,
+        child: controller != null
+            ? Obx(
+                () => CustomDrawer(
+                  selectedIndex: controller.selectedIndex.value,
+                  onItemTapped: controller.onItemTapped,
+                  logoAsset: 'assets/white.png',
+                ),
+              )
+            : CustomDrawer(
+                selectedIndex: 0,
+                onItemTapped: (index) {
+                  Navigator.pop(context);
+                  Get.offAll(() => const MainScreen());
+                  Future.microtask(() {
+                    final main = Get.find<MainScreenController>();
+                    main.onItemTapped(index);
+                  });
+                },
+                logoAsset: 'assets/white.png',
+              ),
+      ),
+      body: CustomScrollWidget(
+        children: [
+          const ScreenTitle(title: 'Notifications'),
+          Padding(
+            padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
+            child: CustomColumn(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomSpacer(height: 20),
+                _notifications.isEmpty
+                    ? _buildEmptyState()
+                    : CustomColumn(
+                        children: _notifications.map((notification) {
+                          return Dismissible(
+                            key: Key(notification.id.toString()),
+                            direction: DismissDirection.endToStart,
+                            background: _buildSwipeBackground(),
+                            onDismissed: (direction) {
+                              _deleteNotification(notification.id);
+                            },
+                            child: NotificationCard(
+                              notification: notification,
+                              onTap: () => _markAsRead(notification.id),
+                            ),
+                          );
+                        }).toList(),
+                      ),
                 CustomSpacer(height: 32),
               ],
             ),

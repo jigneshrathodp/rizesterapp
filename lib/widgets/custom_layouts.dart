@@ -1,6 +1,52 @@
 import 'package:flutter/material.dart';
 import '../utils/responsive_config.dart';
 
+class KeyboardAvoider extends StatelessWidget {
+  final Widget child;
+  final EdgeInsets? padding;
+  final bool maintainBottomViewPadding;
+
+  const KeyboardAvoider({
+    super.key,
+    required this.child,
+    this.padding,
+    this.maintainBottomViewPadding = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: padding ?? EdgeInsets.zero,
+      child: MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          viewInsets: EdgeInsets.zero,
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+            
+            if (keyboardHeight > 0) {
+              // Keyboard is visible
+              return SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - keyboardHeight,
+                  ),
+                  child: child,
+                ),
+              );
+            } else {
+              // Keyboard is hidden
+              return child;
+            }
+          },
+        ),
+      ),
+    );
+  }
+}
+
 class ResponsiveLayout extends StatelessWidget {
   final Widget mobile;
   final Widget? tablet;

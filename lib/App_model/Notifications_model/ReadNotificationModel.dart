@@ -28,7 +28,7 @@ class Data {
   int? id;
   String? type;
   String? status;
-  Null? advertise;
+  Null advertise;
   Order? order;
 
   Data({this.id, this.type, this.status, this.advertise, this.order});

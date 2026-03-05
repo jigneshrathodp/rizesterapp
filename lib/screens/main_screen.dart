@@ -15,6 +15,7 @@ import 'dashboard_screen.dart';
 import 'Order/order_list_screen.dart';
 import 'Order/order_now_screen.dart';
 import 'Profile/profile_screen.dart';
+import '../controllers/category_list_controller.dart';
 
 class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
@@ -71,5 +72,12 @@ class MainScreenController extends GetxController {
   void onItemTapped(int index) {
     selectedIndex.value = index;
     Get.back();
+    if (index == 3) {
+      Future.microtask(() {
+        if (Get.isRegistered<CategoryListController>()) {
+          Get.find<CategoryListController>().fetchCategories();
+        }
+      });
+    }
   }
 }

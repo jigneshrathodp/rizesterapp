@@ -151,6 +151,7 @@ class AuthController extends GetxController {
       resetPasswordModel.value = await AuthService.resetPassword(
         currentPasswordController.text,
         newPasswordController.text,
+        confirmPasswordController.text,
       );
       
       if (resetPasswordModel.value?.status == true) {

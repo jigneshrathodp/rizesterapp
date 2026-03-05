@@ -4,7 +4,7 @@ import '../services/auth_service.dart';
 import '../utils/responsive_config.dart';
 import '../widgets/widgets.dart';
 import 'Profile/login_screen.dart';
-import 'main_screen.dart';
+import 'dashboard_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -28,8 +28,8 @@ class _SplashScreenState extends State<SplashScreen> {
       bool isLoggedIn = await AuthService.isLoggedIn();
       
       if (isLoggedIn) {
-        // User is logged in, navigate to main screen
-        Get.offAll(() => const MainScreen());
+        // User is logged in, navigate to dashboard screen
+        Get.offAll(() => const DashboardScreen(showAppBar: true));
       } else {
         // User is not logged in, navigate to login screen
         Get.offAll(() => const LoginScreen());
