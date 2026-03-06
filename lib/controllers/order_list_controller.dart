@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../services/order_service.dart';
+import '../services/auth_service.dart';
+import '../services/snackbar_service.dart';
+import '../App_model/Order_model/GetOrderModel.dart';
+import '../App_model/Order_model/DeleteOrderModel.dart';
 import '../screens/Order/order_now_screen.dart';
 
 class OrderListController extends GetxController {
@@ -8,109 +13,115 @@ class OrderListController extends GetxController {
   final entriesOptions = ['10', '25', '50', '100'].obs;
   final currentPage = 1.obs;
   final totalPages = 1.obs;
+  final pageSize = 20;
+  final hasReachedMax = false.obs;
+  final searchQuery = ''.obs;
+  final isLoading = false.obs;
+  final isLoadingMore = false.obs;
+  final orders = <OrderItem>[].obs;
   
-  final orders = [
-    OrderItem(
-      id: 1,
-      imageUrl: 'assets/headphones.jpg',
-      productName: 'Noise Cancelling Headphones',
-      category: 'Electronics',
-      userName: 'Jignesh Rathod',
-      shippingCost: '₹0',
-      totalPrice: '₹999.99',
-      date: '27-02-2026',
-    ),
-    OrderItem(
-      id: 2,
-      imageUrl: 'assets/laptop.jpg',
-      productName: 'MacBook Pro M2',
-      category: 'Computers',
-      userName: 'Jane Smith',
-      shippingCost: '₹50',
-      totalPrice: '₹1,299.00',
-      date: '27-02-2026',
-    ),
-    OrderItem(
-      id: 3,
-      imageUrl: 'assets/phone.jpg',
-      productName: 'iPhone 13 Pro',
-      category: 'Mobile',
-      userName: 'John Doe',
-      shippingCost: '₹0',
-      totalPrice: '₹799.99',
-      date: '26-02-2026',
-    ),
-    OrderItem(
-      id: 4,
-      imageUrl: 'assets/watch.jpg',
-      productName: 'Smart Watch Ultra',
-      category: 'Wearables',
-      userName: 'Mike Johnson',
-      shippingCost: '₹25',
-      totalPrice: '₹399.99',
-      date: '26-02-2026',
-    ),
-    OrderItem(
-      id: 5,
-      imageUrl: 'assets/tablet.jpg',
-      productName: 'iPad Air',
-      category: 'Tablets',
-      userName: 'Sarah Wilson',
-      shippingCost: '₹0',
-      totalPrice: '₹599.99',
-      date: '25-02-2026',
-    ),
-    OrderItem(
-      id: 6,
-      imageUrl: 'assets/camera.jpg',
-      productName: 'DSLR Camera',
-      category: 'Photography',
-      userName: 'David Brown',
-      shippingCost: '₹75',
-      totalPrice: '₹1,499.00',
-      date: '25-02-2026',
-    ),
-    OrderItem(
-      id: 7,
-      imageUrl: 'assets/speaker.jpg',
-      productName: 'Bluetooth Speaker',
-      category: 'Audio',
-      userName: 'Emma Davis',
-      shippingCost: '₹15',
-      totalPrice: '₹149.99',
-      date: '24-02-2026',
-    ),
-    OrderItem(
-      id: 8,
-      imageUrl: 'assets/keyboard.jpg',
-      productName: 'Mechanical Keyboard',
-      category: 'Accessories',
-      userName: 'Chris Lee',
-      shippingCost: '₹10',
-      totalPrice: '₹199.99',
-      date: '24-02-2026',
-    ),
-    OrderItem(
-      id: 9,
-      imageUrl: 'assets/mouse.jpg',
-      productName: 'Gaming Mouse',
-      category: 'Accessories',
-      userName: 'Alex Kim',
-      shippingCost: '₹5',
-      totalPrice: '₹79.99',
-      date: '23-02-2026',
-    ),
-    OrderItem(
-      id: 10,
-      imageUrl: 'assets/monitor.jpg',
-      productName: '4K Monitor',
-      category: 'Displays',
-      userName: 'Lisa Chen',
-      shippingCost: '₹100',
-      totalPrice: '₹899.99',
-      date: '23-02-2026',
-    ),
-  ].obs;
+  @override
+  void onInit() {
+    super.onInit();
+    fetchOrders();
+  }
+  
+  Future<void> fetchOrders({bool refresh = false}) async {
+    if (refresh) {
+      currentPage.value = 1;
+      hasReachedMax.value = false;
+      orders.clear();
+    }
+    
+    if (isLoading.value || hasReachedMax.value) return;
+    
+    try {
+      isLoading.value = true;
+      
+      String? token = await AuthService.getToken();
+      
+      if (token == null) {
+        SnackbarService.showError('No authentication token found');
+        return;
+      }
+      
+      GetOrderModel result = await OrderService.getOrderList(
+        token,
+        page: currentPage.value,
+        limit: pageSize,
+        search: searchQuery.value.isNotEmpty ? searchQuery.value : null,
+      );
+      
+      if (result.status == true && result.data != null) {
+        if (refresh) {
+          orders.clear();
+        }
+        
+        for (var orderData in result.data!) {
+          orders.add(OrderItem.fromApiData(orderData));
+        }
+        
+        if (result.data!.length < pageSize) {
+          hasReachedMax.value = true;
+        } else {
+          currentPage.value++;
+        }
+      }
+      
+    } catch (e) {
+      SnackbarService.showException(Exception(e.toString()));
+    } finally {
+      isLoading.value = false;
+    }
+  }
+  
+  Future<void> loadMoreOrders() async {
+    if (isLoadingMore.value || hasReachedMax.value) return;
+    
+    try {
+      isLoadingMore.value = true;
+      
+      String? token = await AuthService.getToken();
+      
+      if (token == null) {
+        SnackbarService.showError('No authentication token found');
+        return;
+      }
+      
+      GetOrderModel result = await OrderService.getOrderList(
+        token,
+        page: currentPage.value,
+        limit: pageSize,
+        search: searchQuery.value.isNotEmpty ? searchQuery.value : null,
+      );
+      
+      if (result.status == true && result.data != null) {
+        for (var orderData in result.data!) {
+          orders.add(OrderItem.fromApiData(orderData));
+        }
+        
+        if (result.data!.length < pageSize) {
+          hasReachedMax.value = true;
+        } else {
+          currentPage.value++;
+        }
+      }
+      
+    } catch (e) {
+      SnackbarService.showException(Exception(e.toString()));
+    } finally {
+      isLoadingMore.value = false;
+    }
+  }
+  
+  void searchOrders(String query) {
+    searchQuery.value = query;
+    fetchOrders(refresh: true);
+  }
+  
+  void refreshOrders() {
+    fetchOrders(refresh: true);
+  }
   
   List<OrderItem> get paginatedData {
     final entriesPerPage = int.parse(selectedEntries.value);
@@ -149,24 +160,24 @@ class OrderListController extends GetxController {
     Get.to(() => const OrderNowScreen(showAppBar: true));
   }
   
-  void deleteOrder(int id) {
-    final deletedOrder = orders.firstWhereOrNull((order) => order.id == id);
-    if (deletedOrder != null) {
-      orders.removeWhere((order) => order.id == id);
+  Future<void> deleteOrder(int id) async {
+    try {
+      // Get token from AuthService
+      String? token = await AuthService.getToken();
       
-      Get.snackbar(
-        'Order Deleted',
-        'Order #$id deleted',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 2),
-        mainButton: TextButton(
-          onPressed: () {
-            orders.insert(id - 1, deletedOrder);
-          },
-          child: const Text('Undo', style: TextStyle(color: Colors.white)),
-        ),
-      );
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+      
+      DeleteOrderModel result = await OrderService.deleteOrder(token, id);
+      
+      if (result.status == true) {
+        orders.removeWhere((order) => order.id == id);
+        SnackbarService.showSuccess(result.message ?? 'Order deleted successfully!');
+      }
+      
+    } catch (e) {
+      SnackbarService.showException(Exception(e.toString()));
     }
   }
   
@@ -222,4 +233,18 @@ class OrderItem {
     required this.totalPrice,
     required this.date,
   });
+  
+  // Factory method to create OrderItem from API data
+  factory OrderItem.fromApiData(dynamic data) {
+    return OrderItem(
+      id: data.orderId ?? 0,
+      imageUrl: data.product?.image ?? 'assets/default_product.jpg',
+      productName: data.product?.name ?? 'Unknown Product',
+      category: data.product?.category ?? 'Unknown',
+      userName: data.customer?.name ?? 'Unknown Customer',
+      shippingCost: '₹${data.pricing?.shippingCost ?? 0}',
+      totalPrice: '₹${data.pricing?.totalPrice ?? 0}',
+      date: DateTime.now().toString().split(' ')[0], // You might want to use actual date from API
+    );
+  }
 }

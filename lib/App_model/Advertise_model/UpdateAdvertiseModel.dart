@@ -23,12 +23,12 @@ class UpdateAdvertiseModel {
 }
 
 class Data {
-  int? id;
-  String? date;
-  String? title;
-  String? price;
-  String? url;
-  String? socialmedia;
+  dynamic id;
+  dynamic date;
+  dynamic title;
+  dynamic price;
+  dynamic url;
+  dynamic socialmedia;
 
   Data(
       {this.id, this.date, this.title, this.price, this.url, this.socialmedia});

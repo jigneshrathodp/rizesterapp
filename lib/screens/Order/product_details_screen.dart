@@ -1,155 +1,225 @@
 import 'package:flutter/material.dart';
-
+import 'package:get/get.dart';
 import '../../utils/responsive_config.dart';
-import '../../widgets/custom_buttons.dart';
-import '../../widgets/custom_layouts.dart';
-import '../../widgets/screen_title.dart';
+import '../../widgets/widgets.dart';
+import '../../controllers/order_now_controller.dart';
 import 'buy_now_screen.dart';
+import 'package:rizesterapp/screens/main_screen.dart';
+import '../notification_screen.dart' as notification;
+import 'package:rizesterapp/screens/Profile/profile_screen.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final ProductItem product;
+  final bool showAppBar;
 
   const ProductDetailScreen({
     super.key,
     required this.product,
+    this.showAppBar = true,
   });
 
   @override
   Widget build(BuildContext context) {
     final totalCost = product.weight * product.costPerGram;
+    final controller = Get.put(OrderNowController());
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      key: controller.scaffoldKey,
+      backgroundColor: Colors.grey.shade100,
+
+      appBar: showAppBar
+          ? CustomAppBar(
+        logoAsset: 'assets/black.png',
+        onMenuPressed: () => controller.scaffoldKey.currentState?.openDrawer(),
+        onNotificationPressed: () =>
+            Get.to(() => const notification.NotificationScreen()),
+        onProfilePressed: () => Get.to(() => const ProfileScreen()),
+      )
+          : null,
+
+      drawer: showAppBar
+          ? SizedBox(
+        width: ResponsiveConfig.getWidth(context) * 0.6,
+        child: CustomDrawer(
+          selectedIndex: 1,
+          onItemTapped: (index) {
+            Navigator.pop(context);
+            Get.offAll(() => const MainScreen());
+
+            Future.microtask(() {
+              final main = Get.find<MainScreenController>();
+              main.onItemTapped(index);
+            });
+          },
+          logoAsset: 'assets/white.png',
+        ),
+      )
+          : null,
+
       body: CustomScrollWidget(
         children: [
           const ScreenTitle(title: 'Product Detail'),
+
           Padding(
-            padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
-            child: CustomColumn(
+            padding: const EdgeInsets.all(16),
+
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomSpacer(height: 20),
 
-                // Product image with better design
-                Center(
-                  child: Container(
-                    width: ResponsiveConfig.responsiveWidth(context, 200),
-                    height: ResponsiveConfig.responsiveHeight(context, 180),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 20)),
-                      color: Colors.grey[100],
-                      border: Border.all(
-                        color: Colors.black,
-                        width: 0.2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 20)),
-                      child: Image.asset(
-                        product.imageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            Icons.image,
-                            color: Colors.grey[400],
-                            size: ResponsiveConfig.responsiveFont(context, 80),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ),
+                const SizedBox(height: 10),
 
-                CustomSpacer(height: ResponsiveConfig.spacingXl(context)),
-
-                // Product name with better styling
+                /// PRODUCT IMAGE
                 Container(
                   width: double.infinity,
-                  padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
+                  height: 260,
                   decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
-                    border: Border.all(
-                      color: Colors.black,
-                      width: 0.2,
-                    ),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.06),
+                        blurRadius: 12,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
                   ),
-                  child: Text(
-                    product.name,
-                    style: AppTextStyles.getHeading(context).copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
+
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: Image.network(
+                      product.imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[200],
+                          child: const Icon(
+                            Icons.image,
+                            color: Colors.grey,
+                            size: 50,
+                          ),
+                        );
+                      },
                     ),
-                    textAlign: TextAlign.center,
                   ),
                 ),
 
-                CustomSpacer(height: ResponsiveConfig.spacingXl(context)),
+                const SizedBox(height: 20),
 
-                // Details cards with professional design
-                CustomColumn(
+                /// PRODUCT NAME
+                Text(
+                  product.name,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                /// PRODUCT INFO
+                Row(
                   children: [
-                    _buildDetailCard(
-                      context,
-                      "Weight",
-                      "${product.weight} grams",
-                      Icons.scale,
-                      Colors.blue,
-                    ),
-                    CustomSpacer(height: ResponsiveConfig.spacingMd(context)),
-                    _buildDetailCard(
-                      context,
-                      "Cost per Gram",
-                      "₹${product.costPerGram}",
-                      Icons.currency_rupee,
-                      Colors.green,
-                    ),
-                    CustomSpacer(height: ResponsiveConfig.spacingMd(context)),
-                    _buildDetailCard(
-                      context,
-                      "Total Cost",
-                      "₹${totalCost.toStringAsFixed(2)}",
-                      Icons.calculate,
-                      Colors.orange,
-                      isTotal: true,
-                    ),
+
+                    _infoChip("${product.weight} g"),
+
+                    const SizedBox(width: 8),
+
+                    _infoChip("₹${product.costPerGram}/g"),
                   ],
                 ),
 
-                CustomSpacer(height: ResponsiveConfig.spacingXl(context)),
+                const SizedBox(height: 20),
 
-                // Buy Now button with professional design
-                CustomButton(
-                  text: 'Buy Now',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => BuyNowScreen(
-                          product: {
-                            'id': product.id,
-                            'name': product.name,
-                            'category': 'Electronics',
-                            'weight': product.weight,
-                            'costPerGram': product.costPerGram,
-                            'imageUrl': product.imageUrl,
-                          },
+                /// PRICE CARD
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(18),
+
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      )
+                    ],
+                  ),
+
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+
+                      const Text(
+                        "Total Price",
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 14,
                         ),
                       ),
-                    );
-                  },
-                  backgroundColor: Colors.black,
-                  textColor: Colors.white,
+
+                      const SizedBox(height: 5),
+
+                      Text(
+                        "₹${totalCost.toStringAsFixed(0)}",
+                        style: const TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
 
-                CustomSpacer(height: ResponsiveConfig.spacingMd(context)),
+                const SizedBox(height: 30),
+
+                /// BUY BUTTON
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+
+                    onPressed: () {
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BuyNowScreen(
+                            product: {
+                              'id': product.id,
+                              'name': product.name,
+                              'category': product.category,
+                              'weight': product.weight,
+                              'costPerGram': product.costPerGram,
+                              'imageUrl': product.imageUrl,
+                            },
+                            showAppBar: showAppBar,
+                          ),
+                        ),
+                      );
+                    },
+
+                    child: const Text(
+                      "Buy Now",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -158,121 +228,20 @@ class ProductDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailCard(
-      BuildContext context,
-      String label,
-      String value,
-      IconData icon,
-      Color color, {
-        bool isTotal = false,
-      }) {
+  Widget _infoChip(String text) {
     return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 6,
+      ),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
-        border: Border.all(
-          color: isTotal ? color : color.withOpacity(0.3),
-          width: isTotal ? 2 : 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(8),
       ),
-      child: CustomRow(
-        children: [
-          Container(
-            width: ResponsiveConfig.responsiveWidth(context, 50),
-            height: ResponsiveConfig.responsiveHeight(context, 50),
-            decoration: BoxDecoration(
-              color: isTotal ? color : color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 10)),
-            ),
-            child: Icon(
-              icon,
-              color: isTotal ? Colors.white : color,
-              size: ResponsiveConfig.responsiveFont(context, 24),
-            ),
-          ),
-          CustomSpacer(width: ResponsiveConfig.spacingMd(context)),
-          Expanded(
-            child: CustomColumn(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: AppTextStyles.getBody(context).copyWith(
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                CustomSpacer(height: ResponsiveConfig.spacing2xs(context)),
-                Text(
-                  value,
-                  style: AppTextStyles.getSubheading(context).copyWith(
-                    fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
-                    color: isTotal ? color : Colors.black,
-                    fontSize: isTotal
-                        ? ResponsiveConfig.responsiveFont(context, 20)
-                        : ResponsiveConfig.responsiveFont(context, 18),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 13),
       ),
     );
   }
-
-  Widget _buildDetailRow(
-      BuildContext context,
-      String label,
-      String value, {
-        bool isTotal = false,
-      }) {
-    return CustomRow(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: AppTextStyles.getBody(context).copyWith(
-            color: Colors.grey[600],
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        Text(
-          value,
-          style: AppTextStyles.getSubheading(context).copyWith(
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
-            color: isTotal ? Colors.green[700] : Colors.black87,
-            fontSize: isTotal
-                ? ResponsiveConfig.responsiveFont(context, 20)
-                : ResponsiveConfig.responsiveFont(context, 16),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class ProductItem {
-  final int id;
-  final String name;
-  final double costPerGram;
-  final int weight;
-  final String imageUrl;
-
-  ProductItem({
-    required this.id,
-    required this.name,
-    required this.costPerGram,
-    required this.weight,
-    required this.imageUrl,
-  });
 }

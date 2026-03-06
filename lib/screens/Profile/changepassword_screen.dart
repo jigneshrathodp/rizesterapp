@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import '../../controllers/change_password_controller.dart';
 import '../../utils/responsive_config.dart';
 import '../../widgets/widgets.dart';
-import '../main_screen.dart';
 
 class ChangePasswordScreen extends StatelessWidget {
   const ChangePasswordScreen({super.key});

@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/auth_service.dart';
-import '../App_model/product_model/CreateProductModel.dart';
+import '../App_model/product_model/UpdateProductModel.dart';
 import '../App_model/Category_model/GetCatgoryModel.dart';
 import '../App_model/category_helper.dart';
 import '../services/snackbar_service.dart';
 
-class CreateProductController extends GetxController {
+class UpdateProductController extends GetxController {
+  final int productId;
+  
   // Form key
   final formKey = GlobalKey<FormState>();
+  final scaffoldKey = GlobalKey<ScaffoldState>();
   
   // Text controllers
   final categoryController = TextEditingController();
@@ -23,20 +26,23 @@ class CreateProductController extends GetxController {
   
   // Reactive variables
   final categories = <CategoryHelper>[].obs;
-  final jewelleryCategories = ['Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Pendants', 'Chains', 'Bangles', 'Anklets'].obs;
   final selectedStatus = 'Active'.obs;
   final forSale = true.obs;
   final selectedImage = Rx<XFile?>(null);
   final isLoading = false.obs;
   final isCategoriesLoading = false.obs;
+  final isProductLoading = false.obs;
   final selectedCategory = Rx<CategoryHelper?>(null);
   
   final ImagePicker picker = ImagePicker();
+  
+  UpdateProductController({required this.productId});
   
   @override
   void onInit() {
     super.onInit();
     fetchCategories();
+    fetchProductDetails();
   }
   
   @override
@@ -66,6 +72,57 @@ class CreateProductController extends GetxController {
       Get.snackbar('Error', 'Failed to load categories: $e');
     } finally {
       isCategoriesLoading.value = false;
+    }
+  }
+  
+  // Fetch product details from API
+  Future<void> fetchProductDetails() async {
+    try {
+      isProductLoading.value = true;
+      UpdateProductModel productModel = await AuthService.getProductById(productId);
+      if (productModel.data != null) {
+        final product = productModel.data!;
+        
+        // Set text controllers
+        nameController.text = product.name ?? '';
+        skuController.text = product.sku ?? '';
+        quantityController.text = product.quantity ?? '';
+        weightGmController.text = product.weightInGram ?? '';
+        costPerGmController.text = product.costPerGram ?? '';
+        totalCostController.text = product.totalCost?.toString() ?? '';
+        sellingPriceController.text = product.sellPrice ?? '';
+        
+        // Set status
+        selectedStatus.value = product.active == 1 ? 'Active' : 'Inactive';
+        
+        // Set for sale
+        forSale.value = product.forSale == 1;
+        
+        // Set category
+        if (product.categoryId != null) {
+          // Don't set text initially, let the dropdown handle it
+          selectedCategory.value = CategoryHelper(
+            id: int.parse(product.categoryId!),
+            name: '', // Will be updated when categories are loaded
+          );
+          // Don't set categoryController.text initially to avoid dropdown conflict
+          
+          // Update category name when categories are loaded
+          ever(categories, (_) {
+            final category = categories.firstWhereOrNull(
+              (cat) => cat.id.toString() == product.categoryId,
+            );
+            if (category != null) {
+              selectedCategory.value = category;
+              categoryController.text = category.name;
+            }
+          });
+        }
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to load product details: $e');
+    } finally {
+      isProductLoading.value = false;
     }
   }
   
@@ -145,7 +202,8 @@ class CreateProductController extends GetxController {
       isLoading.value = true;
       
       try {
-        CreateProductModel result = await AuthService.createProduct(
+        UpdateProductModel result = await AuthService.updateProduct(
+          id: productId,
           name: nameController.text,
           category: selectedCategory.value!.categoryId,
           qnty: quantityController.text,
@@ -157,32 +215,16 @@ class CreateProductController extends GetxController {
         );
         
         if (result.status == true) {
-          SnackbarService.showSuccess(result.message ?? 'Product created successfully');
-          clearForm();
+          SnackbarService.showSuccess(result.message ?? 'Product updated successfully');
           Get.back();
         } else {
-          SnackbarService.showError(result.message ?? 'Failed to create product');
+          SnackbarService.showError(result.message ?? 'Failed to update product');
         }
       } catch (e) {
-        SnackbarService.showException(Exception(e.toString()));
+        SnackbarService.showException(Exception(e));
       } finally {
         isLoading.value = false;
       }
     }
-  }
-  
-  void clearForm() {
-    nameController.clear();
-    categoryController.clear();
-    skuController.clear();
-    quantityController.clear();
-    weightGmController.clear();
-    costPerGmController.clear();
-    totalCostController.clear();
-    sellingPriceController.clear();
-    selectedCategory.value = null;
-    selectedImage.value = null;
-    selectedStatus.value = 'Active';
-    forSale.value = true;
   }
 }

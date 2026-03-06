@@ -32,8 +32,7 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<MainScreenController>();
-    
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: showAppBar

@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../services/auth_service.dart';
+import '../services/snackbar_service.dart';
+import '../App_model/product_model/GetproductModel.dart';
+import '../App_model/product_model/DeleteProductModel.dart';
+import '../App_model/Category_model/GetCatgoryModel.dart';
+import '../App_model/category_helper.dart';
 import '../screens/Product/create_product_screen.dart';
 import '../screens/Product/update_product_screen.dart';
 
@@ -9,55 +15,182 @@ class ProductListController extends GetxController {
   final entriesOptions = ['10', '25', '50', '100'].obs;
   final currentPage = 1.obs;
   final totalPages = 1.obs;
+  final pageSize = 20;
+  final hasReachedMax = false.obs;
+  final searchQuery = ''.obs;
   
-  // Sample jewelry data
-  final productData = [
-    {
-      'id': 1,
-      'name': 'Gold Diamond Ring',
-      'category': 'Rings',
-      'sku': 'JWL-001',
-      'price': '₹52,000',
-      'quantity': '2',
-      'status': 'Active',
-    },
-    {
-      'id': 2,
-      'name': 'Silver Chain Necklace',
-      'category': 'Necklaces',
-      'sku': 'JWL-002',
-      'price': '₹25,000',
-      'quantity': '1',
-      'status': 'Active',
-    },
-    {
-      'id': 3,
-      'name': 'Pearl Earrings',
-      'category': 'Earrings',
-      'sku': 'JWL-003',
-      'price': '₹35,000',
-      'quantity': '3',
-      'status': 'Active',
-    },
-    {
-      'id': 4,
-      'name': 'Gold Bracelet',
-      'category': 'Bracelets',
-      'sku': 'JWL-004',
-      'price': '₹45,000',
-      'quantity': '0',
-      'status': 'Inactive',
-    },
-    {
-      'id': 5,
-      'name': 'Diamond Pendant',
-      'category': 'Pendants',
-      'sku': 'JWL-005',
-      'price': '₹28,000',
-      'quantity': '4',
-      'status': 'Active',
-    },
-  ].obs;
+  // Reactive variables
+  final productData = <Map<String, dynamic>>[].obs;
+  final categories = <CategoryHelper>[].obs;
+  final isLoading = false.obs;
+  final isLoadingMore = false.obs;
+  final isDeleting = false.obs;
+  
+  @override
+  void onInit() {
+    super.onInit();
+    
+    // Add search listener
+    searchController.addListener(() {
+      searchProducts(searchController.text);
+    });
+    
+    fetchCategories();
+    fetchProducts();
+  }
+  
+  @override
+  void onClose() {
+    searchController.dispose();
+    super.onClose();
+  }
+  
+  // Fetch categories from API
+  Future<void> fetchCategories() async {
+    try {
+      GetCatgoryModel categoryModel = await AuthService.getCategoryList();
+      if (categoryModel.data != null) {
+        categories.value = categoryModel.data!.map((category) => 
+          CategoryHelper.fromJson(category.toJson())
+        ).toList();
+      }
+    } catch (e) {
+      SnackbarService.showException(Exception(e.toString()));
+    }
+  }
+  
+  // Get category name by ID
+  String getCategoryName(String? categoryId) {
+    if (categoryId == null || categoryId.isEmpty) return 'Unknown';
+    final category = categories.firstWhereOrNull(
+      (cat) => cat.id.toString() == categoryId,
+    );
+    return category?.name ?? 'Unknown';
+  }
+  
+  // Fetch products from API with lazy loading
+  Future<void> fetchProducts({bool refresh = false}) async {
+    if (refresh) {
+      currentPage.value = 1;
+      hasReachedMax.value = false;
+      productData.clear();
+    }
+    
+    if (isLoading.value || hasReachedMax.value) return;
+    
+    try {
+      isLoading.value = true;
+      
+      // Get token from AuthService
+      String? token = await AuthService.getToken();
+      
+      if (token == null) {
+        SnackbarService.showError('No authentication token found');
+        return;
+      }
+      
+      GetproductModel productModel = await AuthService.getProductList(
+        token, 
+        page: currentPage.value,
+        limit: pageSize,
+        search: searchQuery.value.isNotEmpty ? searchQuery.value : null,
+      );
+      
+      if (productModel.data != null) {
+        if (refresh) {
+          productData.clear();
+        }
+        
+        for (var product in productModel.data!) {
+          productData.add({
+            'id': product.id,
+            'name': product.name,
+            'category': product.categoryId,
+            'sku': product.sku,
+            'quantity': product.quantity,
+            'weight_in_gram': product.weightInGram,
+            'cost_per_gram': product.costPerGram,
+            'total_cost': product.totalCost?.toString() ?? '0',
+            'sell_price': product.sellPrice ?? 'Not set',
+            'image': product.image,
+            'active': product.active == 1 ? 'Active' : 'Inactive',
+            'for_sale': product.forSale == 1 ? 'Yes' : 'No',
+          });
+        }
+        
+        // Check if we've reached the end
+        if (productModel.data!.length < pageSize) {
+          hasReachedMax.value = true;
+        } else {
+          currentPage.value++;
+        }
+      }
+    } catch (e) {
+      SnackbarService.showException(Exception(e.toString()));
+    } finally {
+      isLoading.value = false;
+    }
+  }
+  
+  Future<void> loadMoreProducts() async {
+    if (isLoadingMore.value || hasReachedMax.value) return;
+    
+    try {
+      isLoadingMore.value = true;
+      
+      String? token = await AuthService.getToken();
+      
+      if (token == null) {
+        SnackbarService.showError('No authentication token found');
+        return;
+      }
+      
+      GetproductModel productModel = await AuthService.getProductList(
+        token, 
+        page: currentPage.value,
+        limit: pageSize,
+        search: searchQuery.value.isNotEmpty ? searchQuery.value : null,
+      );
+      
+      if (productModel.data != null) {
+        for (var product in productModel.data!) {
+          productData.add({
+            'id': product.id,
+            'name': product.name,
+            'category': product.categoryId,
+            'sku': product.sku,
+            'quantity': product.quantity,
+            'weight_in_gram': product.weightInGram,
+            'cost_per_gram': product.costPerGram,
+            'total_cost': product.totalCost?.toString() ?? '0',
+            'sell_price': product.sellPrice ?? 'Not set',
+            'image': product.image,
+            'active': product.active == 1 ? 'Active' : 'Inactive',
+            'for_sale': product.forSale == 1 ? 'Yes' : 'No',
+          });
+        }
+        
+        if (productModel.data!.length < pageSize) {
+          hasReachedMax.value = true;
+        } else {
+          currentPage.value++;
+        }
+      }
+    } catch (e) {
+      SnackbarService.showException(Exception(e.toString()));
+    } finally {
+      isLoadingMore.value = false;
+    }
+  }
+  
+  void searchProducts(String query) {
+    searchQuery.value = query;
+    fetchProducts(refresh: true);
+  }
+  
+  void refreshProducts() {
+    fetchProducts(refresh: true);
+  }
   
   List<Map<String, dynamic>> get paginatedData {
     final entriesPerPage = int.parse(selectedEntries.value);
@@ -92,8 +225,22 @@ class ProductListController extends GetxController {
     }
   }
   
-  void deleteProduct(int productId) {
-    productData.removeWhere((p) => p['id'] == productId);
+  Future<void> deleteProduct(int productId) async {
+    try {
+      isDeleting.value = true;
+      DeleteProductModel result = await AuthService.deleteProduct(productId);
+      
+      if (result.status == true) {
+        productData.removeWhere((p) => p['id'] == productId);
+        SnackbarService.showSuccess(result.message ?? 'Product deleted successfully');
+      } else {
+        SnackbarService.showError(result.message ?? 'Failed to delete product');
+      }
+    } catch (e) {
+      SnackbarService.showException(Exception(e.toString()));
+    } finally {
+      isDeleting.value = false;
+    }
   }
   
   void showDeleteDialog(String productName, int productId) {
@@ -106,12 +253,20 @@ class ProductListController extends GetxController {
             onPressed: () => Get.back(),
             child: const Text('Cancel'),
           ),
-          TextButton(
-            onPressed: () {
-              Get.back();
-              deleteProduct(productId);
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          Obx(
+            () => TextButton(
+              onPressed: isDeleting.value ? null : () async {
+                Get.back();
+                await deleteProduct(productId);
+              },
+              child: isDeleting.value 
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Delete', style: TextStyle(color: Colors.red)),
+            ),
           ),
         ],
       ),
@@ -119,16 +274,14 @@ class ProductListController extends GetxController {
   }
   
   void navigateToCreateProduct() {
-    Get.to(() => const CreateProductScreen(showAppBar: true));
+    Get.to(() => const CreateProductScreen(showAppBar: true))?.then((_) {
+      refreshProducts();
+    });
   }
   
   void navigateToUpdateProduct(Map<String, dynamic> productData) {
-    Get.to(() => UpdateProductScreen(productData: productData, showAppBar: true));
-  }
-  
-  @override
-  void onClose() {
-    searchController.dispose();
-    super.onClose();
+    Get.to(() => UpdateProductScreen(productData: productData, showAppBar: true))?.then((_) {
+      refreshProducts();
+    });
   }
 }

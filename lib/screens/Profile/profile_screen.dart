@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import '../../App_model/profile_model/GetProfileModel.dart';
 import '../../utils/responsive_config.dart';
 import '../../widgets/widgets.dart';
-import '../../services/auth_service.dart';
 import '../../widgets/auth_future_builder.dart';
 import 'editprofile_screen.dart';
 import 'changepassword_screen.dart';
@@ -29,6 +28,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   
   // Flag to track if refresh is needed
   bool _needsRefresh = true;
+  
+  // GlobalKey for scaffold
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void didChangeDependencies() {
@@ -75,19 +77,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void setImageLoadingState(String imageType, bool loading) {
-    switch (imageType) {
-      case 'profile':
-        profilePhotoLoading.value = loading;
-        break;
-      case 'favIcon':
-        favIconLoading.value = loading;
-        break;
-      case 'logoLight':
-        logoLightLoading.value = loading;
-        break;
-      case 'logoDark':
-        logoDarkLoading.value = loading;
-        break;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      switch (imageType) {
+        case 'profile':
+          profilePhotoLoading.value = loading;
+          break;
+        case 'favIcon':
+          favIconLoading.value = loading;
+          break;
+        case 'logoLight':
+          logoLightLoading.value = loading;
+          break;
+        case 'logoDark':
+          logoDarkLoading.value = loading;
+          break;
+      }
+    });
+  }
+
+  // Helper method to validate image URLs
+  bool _isValidImageUrl(String? imageUrl) {
+    if (imageUrl == null || imageUrl.trim().isEmpty) {
+      return false;
+    }
+    
+    // Check if it's a valid URL format
+    try {
+      final uri = Uri.parse(imageUrl);
+      if (!uri.hasScheme || (!uri.scheme.startsWith('http'))) {
+        return false;
+      }
+      
+      // Check for common image file extensions
+      final path = uri.path.toLowerCase();
+      final imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
+      
+      return imageExtensions.any((ext) => path.endsWith(ext));
+    } catch (e) {
+      return false;
     }
   }
 
@@ -96,7 +123,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final controller = Get.isRegistered<MainScreenController>()
         ? Get.find<MainScreenController>()
         : null;
-    final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
     
     return Scaffold(
       key: _scaffoldKey,
@@ -198,12 +224,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 50)),
                                 border: Border.all(color: Colors.grey[300]!),
                               ),
-                              child: profileModel.user?.image != null
+                              child: profileModel.user?.image != null && _isValidImageUrl(profileModel.user!.image)
                                   ? ClipRRect(
                                       borderRadius: BorderRadius.circular(50),
                                       child: Image.network(
                                         profileModel.user!.image!,
                                         fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                        cacheWidth: 200,
+                                        cacheHeight: 200,
                                         errorBuilder: (context, error, stackTrace) {
                                           return Icon(
                                             Icons.person,
@@ -367,12 +397,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
             borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 8)),
             border: Border.all(color: Colors.grey[300]!),
           ),
-          child: imageUrl != null && imageUrl.isNotEmpty
+          child: _isValidImageUrl(imageUrl)
               ? ClipRRect(
                   borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 8)),
                   child: Image.network(
-                    imageUrl,
+                    imageUrl!,
                     fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                    cacheWidth: 400,
+                    cacheHeight: 400,
                     errorBuilder: (context, error, stackTrace) {
                       return _buildImagePlaceholder(context, title);
                     },
@@ -395,74 +429,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildNetworkImageItem(BuildContext context, String title, String? imageUrl, String imageType) {
-    return Obx(
-      () => CustomColumn(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: AppTextStyles.getBody(context).copyWith(
-              fontWeight: FontWeight.w500,
-              color: Colors.grey[700],
-            ),
+    return CustomColumn(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: AppTextStyles.getBody(context).copyWith(
+            fontWeight: FontWeight.w500,
+            color: Colors.grey[700],
           ),
-          CustomSpacer(height: 8),
-          Container(
-            width: double.infinity,
-            height: ResponsiveConfig.responsiveHeight(context, 120),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 8)),
-              border: Border.all(color: Colors.grey[300]!),
-            ),
-            child: getImageLoadingState(imageType)
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(),
-                        SizedBox(height: 8),
-                        Text(
-                          'Loading...',
-                          style: AppTextStyles.getBody(context).copyWith(
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : imageUrl != null && imageUrl.isNotEmpty
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 8)),
-                        child: Image.network(
-                          imageUrl,
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) {
-                            // Reset loading state on error
-                            setImageLoadingState(imageType, false);
-                            return _buildImagePlaceholder(context, title);
-                          },
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) {
-                              setImageLoadingState(imageType, false);
-                              return child;
-                            }
-                            // Set loading state when loading starts
-                            setImageLoadingState(imageType, true);
-                            return Center(
-                              child: CircularProgressIndicator(
-                                value: loadingProgress.expectedTotalBytes != null
-                                    ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                                    : null,
-                              ),
-                            );
-                          },
-                        ),
-                      )
-                    : _buildImagePlaceholder(context, title),
+        ),
+        CustomSpacer(height: 8),
+        Container(
+          width: double.infinity,
+          height: ResponsiveConfig.responsiveHeight(context, 120),
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 8)),
+            border: Border.all(color: Colors.grey[300]!),
           ),
-        ],
-      ),
+          child: _isValidImageUrl(imageUrl)
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 8)),
+                  child: Image.network(
+                    imageUrl!,
+                    fit: BoxFit.contain,
+                    width: double.infinity,
+                    height: double.infinity,
+                    cacheWidth: 400,
+                    cacheHeight: 400,
+                    errorBuilder: (context, error, stackTrace) {
+                      return _buildImagePlaceholder(context, title);
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      );
+                    },
+                  ),
+                )
+              : _buildImagePlaceholder(context, title),
+        ),
+      ],
     );
   }
 

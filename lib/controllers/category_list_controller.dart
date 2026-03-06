@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../screens/Category/create_category_screen.dart';
 import '../screens/Category/update_category_screen.dart';
 import '../services/auth_service.dart';
+import '../services/snackbar_service.dart';
 import '../App_model/Category_model/GetCatgoryModel.dart';
 
 class CategoryListController extends GetxController {
@@ -11,7 +12,11 @@ class CategoryListController extends GetxController {
   final entriesOptions = ['10', '25', '50', '100'].obs;
   final currentPage = 1.obs;
   final totalPages = 1.obs;
+  final pageSize = 20;
+  final hasReachedMax = false.obs;
+  final searchQuery = ''.obs;
   final isLoading = false.obs;
+  final isLoadingMore = false.obs;
   final errorMessage = ''.obs;
   
   final categories = <Map<String, dynamic>>[].obs;
@@ -24,11 +29,25 @@ class CategoryListController extends GetxController {
     searchController.addListener(_onSearchChanged);
   }
   
-  Future<void> fetchCategories() async {
+  Future<void> fetchCategories({bool refresh = false}) async {
+    if (refresh) {
+      currentPage.value = 1;
+      hasReachedMax.value = false;
+      categories.clear();
+      filteredCategories.clear();
+    }
+    
+    if (isLoading.value || hasReachedMax.value) return;
+    
     isLoading.value = true;
     errorMessage.value = '';
     try {
-      final GetCatgoryModel model = await AuthService.getCategoryList();
+      final GetCatgoryModel model = await AuthService.getCategoryList(
+        page: currentPage.value,
+        limit: pageSize,
+        search: searchQuery.value.isNotEmpty ? searchQuery.value : null,
+      );
+      
       final List<Map<String, dynamic>> items = (model.data ?? [])
           .map((Data d) => {
                 'id': d.id ?? 0,
@@ -37,20 +56,74 @@ class CategoryListController extends GetxController {
                 'imageUrl': d.image ?? '',
               })
           .toList();
+      
       items.sort((a, b) => (a['id'] ?? 0).compareTo(b['id'] ?? 0));
-      categories.assignAll(items);
-      filteredCategories.assignAll(items);
+      
+      if (refresh) {
+        categories.clear();
+      }
+      
+      categories.addAll(items);
+      filteredCategories.assignAll(categories);
+      
+      if (items.length < pageSize) {
+        hasReachedMax.value = true;
+      } else {
+        currentPage.value++;
+      }
     } catch (e) {
       errorMessage.value = e.toString();
-      Get.snackbar(
-        'Error',
-        errorMessage.value,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      SnackbarService.showException(Exception(e.toString()));
     } finally {
       isLoading.value = false;
     }
+  }
+  
+  Future<void> loadMoreCategories() async {
+    if (isLoadingMore.value || hasReachedMax.value) return;
+    
+    try {
+      isLoadingMore.value = true;
+      
+      final GetCatgoryModel model = await AuthService.getCategoryList(
+        page: currentPage.value,
+        limit: pageSize,
+        search: searchQuery.value.isNotEmpty ? searchQuery.value : null,
+      );
+      
+      final List<Map<String, dynamic>> items = (model.data ?? [])
+          .map((Data d) => {
+                'id': d.id ?? 0,
+                'name': d.name ?? '',
+                'sku': d.skubarCode ?? '',
+                'imageUrl': d.image ?? '',
+              })
+          .toList();
+      
+      items.sort((a, b) => (a['id'] ?? 0).compareTo(b['id'] ?? 0));
+      
+      categories.addAll(items);
+      filteredCategories.assignAll(categories);
+      
+      if (items.length < pageSize) {
+        hasReachedMax.value = true;
+      } else {
+        currentPage.value++;
+      }
+    } catch (e) {
+      SnackbarService.showException(Exception(e.toString()));
+    } finally {
+      isLoadingMore.value = false;
+    }
+  }
+  
+  void searchCategories(String query) {
+    searchQuery.value = query;
+    fetchCategories(refresh: true);
+  }
+  
+  void refreshCategories() {
+    fetchCategories(refresh: true);
   }
   
   List<Map<String, dynamic>> get paginatedData {
@@ -128,29 +201,17 @@ class CategoryListController extends GetxController {
       try {
         final result = await AuthService.deleteCategory(id);
         if (result.status == true) {
-          Get.snackbar(
-            'Success',
+          SnackbarService.showSuccess(
             result.message ?? 'Category deleted successfully',
-            backgroundColor: Colors.green,
-            colorText: Colors.white,
-            duration: const Duration(seconds: 3),
           );
           await fetchCategories();
         } else {
-          Get.snackbar(
-            'Error',
+          SnackbarService.showError(
             result.message ?? 'Failed to delete category',
-            backgroundColor: Colors.red,
-            colorText: Colors.white,
           );
         }
       } catch (e) {
-        Get.snackbar(
-          'Error',
-          e.toString(),
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        SnackbarService.showException(Exception(e.toString()));
       }
     }
   }

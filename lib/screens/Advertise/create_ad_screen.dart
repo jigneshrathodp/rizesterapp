@@ -65,62 +65,11 @@ class _CreateAdScreenState extends State<CreateAdScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomSpacer(height: 30),
-                  Obx(
-                    () => GestureDetector(
-                      onTap: controller.pickImage,
-                      child: Container(
-                        width: double.infinity,
-                        height: ResponsiveConfig.responsiveHeight(context, 200),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
-                          border: Border.all(color: Colors.grey[300]!),
-                        ),
-                        child: controller.selectedImage.value != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
-                                child: Stack(
-                                  children: [
-                                    Image.asset(
-                                      controller.selectedImage.value!.path,
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                      height: double.infinity,
-                                      errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(context),
-                                    ),
-                                    Positioned(
-                                      top: 8,
-                                      right: 8,
-                                      child: GestureDetector(
-                                        onTap: controller.removeImage,
-                                        child: Container(
-                                          width: ResponsiveConfig.responsiveWidth(context, 32),
-                                          height: ResponsiveConfig.responsiveWidth(context, 32),
-                                          decoration: const BoxDecoration(
-                                            color: Colors.red,
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: const Icon(
-                                            Icons.close,
-                                            color: Colors.white,
-                                            size: 20,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : _buildImagePlaceholder(context),
-                      ),
-                    ),
-                  ),
-                  CustomSpacer(height: 24),
                   CustomTextField(
                     controller: controller.titleController,
                     labelText: 'Ad Title',
                     hintText: 'Enter advertisement title',
-                    prefixIcon: const Icon(Icons.title),
+                    prefixIcon: const Icon(Icons.title, color: Colors.black),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter ad title';
@@ -132,32 +81,53 @@ class _CreateAdScreenState extends State<CreateAdScreen> {
                     },
                   ),
                   CustomSpacer(height: 16),
-                  Obx(
-                    () => CustomDropdownButtonFormField<String>(
-                      value: controller.selectedPlatform.value,
+                  DropdownButtonFormField<String>(
+                    value: controller.selectedPlatform.value.isEmpty ? null : controller.selectedPlatform.value,
+                    decoration: const InputDecoration(
                       labelText: 'Platform',
-                      hintText: 'Select platform',
-                      items: const ['Facebook', 'Google', 'Instagram', 'Twitter', 'LinkedIn'].map((String platform) {
-                        return DropdownMenuItem<String>(
-                          value: platform,
-                          child: Text(platform),
-                        );
-                      }).toList(),
-                      onChanged: controller.updatePlatform,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please select platform';
-                        }
-                        return null;
-                      },
+                      hintText: 'Select social media platform',
+                      prefixIcon: Icon(Icons.public, color: Colors.black),
+                      border: OutlineInputBorder(),
                     ),
+                    items: const [
+                      DropdownMenuItem(value: 'instagram', child: Text('Instagram')),
+                      DropdownMenuItem(value: 'facebook', child: Text('Facebook')),
+                      DropdownMenuItem(value: 'threads', child: Text('Threads')),
+                      DropdownMenuItem(value: 'pinterest', child: Text('Pinterest')),
+                      DropdownMenuItem(value: 'twitter', child: Text('Twitter')),
+                    ],
+                    onChanged: (value) {
+                      controller.selectedPlatform.value = value ?? '';
+                      controller.platformController.text = value ?? '';
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select a platform';
+                      }
+                      return null;
+                    },
+                  ),
+                  CustomSpacer(height: 16),
+                  CustomTextField(
+                    controller: controller.dateController,
+                    labelText: 'Date',
+                    hintText: 'Select date',
+                    prefixIcon: const Icon(Icons.calendar_today, color: Colors.black),
+                    readOnly: true,
+                    onTap: () => controller.selectDate(context),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select date';
+                      }
+                      return null;
+                    },
                   ),
                   CustomSpacer(height: 16),
                   CustomTextField(
                     controller: controller.priceController,
                     labelText: 'Budget/Price',
-                    hintText: '\$Enter budget amount',
-                    prefixIcon: const Icon(Icons.attach_money),
+                    hintText: 'Enter budget amount',
+                    prefixIcon: const Icon(Icons.attach_money, color: Colors.black),
                     keyboardType: TextInputType.number,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -174,31 +144,14 @@ class _CreateAdScreenState extends State<CreateAdScreen> {
                     controller: controller.urlController,
                     labelText: 'Destination URL',
                     hintText: 'Enter landing page URL',
-                    prefixIcon: const Icon(Icons.link),
+                    prefixIcon: const Icon(Icons.link, color: Colors.black),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter destination URL';
                       }
-                      final uri = Uri.tryParse(value);
-                      if (uri == null || !uri.hasAbsolutePath) {
-                        return 'Please enter valid URL';
-                      }
-                      return null;
-                    },
-                  ),
-                  CustomSpacer(height: 16),
-                  CustomTextField(
-                    controller: controller.descriptionController,
-                    labelText: 'Ad Description',
-                    hintText: 'Enter advertisement description',
-                    prefixIcon: const Icon(Icons.description),
-                    maxLines: 4,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter ad description';
-                      }
-                      if (value.length < 10) {
-                        return 'Description must be at least 10 characters';
+                      // More flexible URL validation
+                      if (!Uri.parse(value).hasAbsolutePath && !value.startsWith('http')) {
+                        return 'Please enter valid URL (e.g., https://example.com)';
                       }
                       return null;
                     },
@@ -233,26 +186,6 @@ class _CreateAdScreenState extends State<CreateAdScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildImagePlaceholder(BuildContext context) {
-    return CustomColumn(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(
-          Icons.cloud_upload,
-          size: ResponsiveConfig.responsiveFont(context, 48),
-          color: Colors.grey[400],
-        ),
-        CustomSpacer(height: 8),
-        Text(
-          'Tap to upload ad creative',
-          style: AppTextStyles.getBody(context).copyWith(
-            color: Colors.grey[600],
-          ),
-        ),
-      ],
     );
   }
 }

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:rizesterapp/services/product_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'api_service.dart';
 import '../App_model/profile_model/LoginModel.dart';
@@ -11,7 +11,13 @@ import '../App_model/Category_model/GetCatgoryModel.dart';
 import '../App_model/Category_model/CreateCategoryModel.dart';
 import '../App_model/Category_model/UpdateCategoryModel.dart';
 import '../App_model/Category_model/DeleteCategoryModel.dart';
+import '../App_model/product_model/GetproductModel.dart';
+import '../App_model/product_model/CreateProductModel.dart';
+import '../App_model/product_model/UpdateProductModel.dart';
+import '../App_model/product_model/DeleteProductModel.dart';
 import 'package:image_picker/image_picker.dart';
+
+import 'category_service.dart';
 
 class AuthService {
   static const String _tokenKey = 'auth_token';
@@ -27,12 +33,6 @@ class AuthService {
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_tokenKey);
-  }
-
-  // Save user data to local storage
-  static Future<void> _saveUserData(Map<String, dynamic> userData) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_userKey, userData.toString());
   }
 
   // Get user data from local storage
@@ -152,14 +152,23 @@ class AuthService {
     }
   }
   
-  // Get categories
-  static Future<GetCatgoryModel> getCategoryList() async {
+  // Get categories with pagination and search support
+  static Future<GetCatgoryModel> getCategoryList({
+    int page = 1,
+    int limit = 20,
+    String? search,
+  }) async {
     try {
       String? token = await getToken();
       if (token == null) {
         throw Exception('No authentication token found');
       }
-      return await ApiService.getCategoryList(token);
+      return await CategoryService.getCategoryList(
+        token,
+        page: page,
+        limit: limit,
+        search: search,
+      );
     } catch (e) {
       throw Exception('Failed to get categories: $e');
     }
@@ -176,7 +185,7 @@ class AuthService {
       if (token == null) {
         throw Exception('No authentication token found');
       }
-      return await ApiService.createCategory(
+      return await CategoryService.createCategory(
         token,
         name: name,
         skubarCode: skubarCode,
@@ -194,7 +203,7 @@ class AuthService {
       if (token == null) {
         throw Exception('No authentication token found');
       }
-      return await ApiService.getCategoryById(token, id);
+      return await CategoryService.getCategoryById(token, id);
     } catch (e) {
       throw Exception('Failed to get category: $e');
     }
@@ -212,7 +221,7 @@ class AuthService {
       if (token == null) {
         throw Exception('No authentication token found');
       }
-      return await ApiService.updateCategory(
+      return await CategoryService.updateCategory(
         token,
         id: id,
         name: name,
@@ -231,9 +240,126 @@ class AuthService {
       if (token == null) {
         throw Exception('No authentication token found');
       }
-      return await ApiService.deleteCategory(token, id);
+      return await CategoryService.deleteCategory(token, id);
     } catch (e) {
       throw Exception('Failed to delete category: $e');
     }
   }
+
+  // ================= PRODUCT SERVICES =================
+
+  // Get products with pagination and search support
+  static Future<GetproductModel> getProductList(
+    String token, {
+    int page = 1,
+    int limit = 20,
+    String? search,
+  }) async {
+    try {
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+      return await ProductService.getProductList(
+        token,
+        page: page,
+        limit: limit,
+        search: search,
+      );
+    } catch (e) {
+      throw Exception('Failed to get products: $e');
+    }
+  }
+
+  // Get product by ID
+  static Future<UpdateProductModel> getProductById(int id) async {
+    try {
+      String? token = await getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+      return await ProductService.getProductById(token, id);
+    } catch (e) {
+      throw Exception('Failed to get product: $e');
+    }
+  }
+
+  // Create product
+  static Future<CreateProductModel> createProduct({
+    required String name,
+    required String category,
+    required String qnty,
+    required String weightInGram,
+    required String costPerGram,
+    XFile? image,
+    required String sts,
+    required String forSale,
+  }) async {
+    try {
+      String? token = await getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+      return await ProductService.createProduct(
+        token,
+        name: name,
+        category: category,
+        qnty: qnty,
+        weightInGram: weightInGram,
+        costPerGram: costPerGram,
+        image: image,
+        sts: sts,
+        forSale: forSale,
+      );
+    } catch (e) {
+      throw Exception('Failed to create product: $e');
+    }
+  }
+
+  // Update product
+  static Future<UpdateProductModel> updateProduct({
+    required int id,
+    required String name,
+    required String category,
+    required String qnty,
+    required String weightInGram,
+    required String costPerGram,
+    XFile? image,
+    required String sts,
+    required String forSale,
+  }) async {
+    try {
+      String? token = await getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+      return await ProductService.updateProduct(
+        token,
+        id: id,
+        name: name,
+        category: category,
+        qnty: qnty,
+        weightInGram: weightInGram,
+        costPerGram: costPerGram,
+        image: image,
+        sts: sts,
+        forSale: forSale,
+      );
+    } catch (e) {
+      throw Exception('Failed to update product: $e');
+    }
+  }
+
+  // Delete product
+  static Future<DeleteProductModel> deleteProduct(int id) async {
+    try {
+      String? token = await getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+      return await ProductService.deleteProduct(token, id);
+    } catch (e) {
+      throw Exception('Failed to delete product: $e');
+    }
+  }
+
 }

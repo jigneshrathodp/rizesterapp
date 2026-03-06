@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:get/get.dart';
 import 'package:rizesterapp/screens/main_screen.dart';
 import '../../utils/responsive_config.dart';
 import '../../widgets/widgets.dart';
 import '../notification_screen.dart' as notification;
 import 'package:rizesterapp/screens/Profile/profile_screen.dart';
+import '../../services/advertise_service.dart';
+import '../../App_model/Advertise_model/UpdateAdvertiseModel.dart';
 
 class UpdateAdsScreen extends StatefulWidget {
   final Map<String, dynamic> adData;
@@ -23,11 +24,11 @@ class _UpdateAdsScreenState extends State<UpdateAdsScreen> {
   late final TextEditingController _titleController;
   late final TextEditingController _priceController;
   late final TextEditingController _urlController;
-  late final TextEditingController _descriptionController;
-  late String _selectedPlatform;
-  XFile? _selectedImage;
+  late final TextEditingController _platformController;
+  String _selectedPlatform = '';
+  late final TextEditingController _dateController;
+  DateTime selectedDate = DateTime.now();
   bool _isLoading = false;
-  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -35,13 +36,17 @@ class _UpdateAdsScreenState extends State<UpdateAdsScreen> {
     _titleController = TextEditingController(text: widget.adData['title'] ?? '');
     _priceController = TextEditingController(text: widget.adData['price']?.toString() ?? '');
     _urlController = TextEditingController(text: widget.adData['url'] ?? '');
-    _descriptionController = TextEditingController(text: widget.adData['description'] ?? '');
-    _selectedPlatform = widget.adData['platform'] ?? 'Facebook';
+    _platformController = TextEditingController(text: widget.adData['socialmedia'] ?? '');
+    _selectedPlatform = widget.adData['socialmedia'] ?? '';
+    _dateController = TextEditingController(text: widget.adData['date'] ?? '');
     
-    // Initialize image if exists
-    final existingImage = widget.adData['image'];
-    if (existingImage != null) {
-      _selectedImage = XFile(existingImage);
+    // Parse existing date if available
+    if (widget.adData['date'] != null && widget.adData['date'].isNotEmpty) {
+      try {
+        selectedDate = DateTime.parse(widget.adData['date']);
+      } catch (e) {
+        selectedDate = DateTime.now();
+      }
     }
   }
 
@@ -50,8 +55,24 @@ class _UpdateAdsScreenState extends State<UpdateAdsScreen> {
     _titleController.dispose();
     _priceController.dispose();
     _urlController.dispose();
-    _descriptionController.dispose();
+    _platformController.dispose();
+    _dateController.dispose();
     super.dispose();
+  }
+  
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null && picked != selectedDate) {
+      setState(() {
+        selectedDate = picked;
+        _dateController.text = "${picked.toLocal()}".split(' ')[0];
+      });
+    }
   }
 
   @override
@@ -96,65 +117,12 @@ class _UpdateAdsScreenState extends State<UpdateAdsScreen> {
                 children: [
                   CustomSpacer(height: 30),
                   
-                  // Image Upload Section
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: Container(
-                      width: double.infinity,
-                      height: ResponsiveConfig.responsiveHeight(context, 200),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
-                        border: Border.all(color: Colors.grey[300]!),
-                      ),
-                      child: _selectedImage != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
-                              child: Stack(
-                                children: [
-                                  Image.asset(
-                                    _selectedImage!.path,
-                                    fit: BoxFit.cover,
-                                    width: double.infinity,
-                                    height: double.infinity,
-                                    errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(context),
-                                  ),
-                                  // Remove image button
-                                  Positioned(
-                                    top: 8,
-                                    right: 8,
-                                    child: GestureDetector(
-                                      onTap: _removeImage,
-                                      child: Container(
-                                        width: ResponsiveConfig.responsiveWidth(context, 32),
-                                        height: ResponsiveConfig.responsiveWidth(context, 32),
-                                        decoration: const BoxDecoration(
-                                          color: Colors.red,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(
-                                          Icons.close,
-                                          color: Colors.white,
-                                          size: 20,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : _buildImagePlaceholder(context),
-                    ),
-                  ),
-                  
-                  CustomSpacer(height: 24),
-                  
                   // Ad Title
                   CustomTextField(
                     controller: _titleController,
                     labelText: 'Ad Title',
                     hintText: 'Enter advertisement title',
-                    prefixIcon: const Icon(Icons.title),
+                    prefixIcon: const Icon(Icons.title, color: Colors.black),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter ad title';
@@ -169,24 +137,48 @@ class _UpdateAdsScreenState extends State<UpdateAdsScreen> {
                   CustomSpacer(height: 16),
                   
                   // Platform
-                  CustomDropdownButtonFormField<String>(
-                    value: _selectedPlatform,
-                    labelText: 'Platform',
-                    hintText: 'Select platform',
-                    items: const ['Facebook', 'Google', 'Instagram', 'Twitter', 'LinkedIn'].map((String platform) {
-                      return DropdownMenuItem<String>(
-                        value: platform,
-                        child: Text(platform),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
+                  DropdownButtonFormField<String>(
+                    value: _selectedPlatform.isEmpty ? null : _selectedPlatform,
+                    decoration: const InputDecoration(
+                      labelText: 'Platform',
+                      hintText: 'Select social media platform',
+                      prefixIcon: Icon(Icons.public, color: Colors.black),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'instagram', child: Text('Instagram')),
+                      DropdownMenuItem(value: 'facebook', child: Text('Facebook')),
+                      DropdownMenuItem(value: 'threads', child: Text('Threads')),
+                      DropdownMenuItem(value: 'pinterest', child: Text('Pinterest')),
+                      DropdownMenuItem(value: 'twitter', child: Text('Twitter')),
+                    ],
+                    onChanged: (value) {
                       setState(() {
-                        _selectedPlatform = newValue!;
+                        _selectedPlatform = value ?? '';
+                        _platformController.text = value ?? '';
                       });
                     },
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please select platform';
+                        return 'Please select a platform';
+                      }
+                      return null;
+                    },
+                  ),
+                  
+                  CustomSpacer(height: 16),
+                  
+                  // Date
+                  CustomTextField(
+                    controller: _dateController,
+                    labelText: 'Date',
+                    hintText: 'Select date',
+                    prefixIcon: const Icon(Icons.calendar_today, color: Colors.black),
+                    readOnly: true,
+                    onTap: () => _selectDate(context),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select date';
                       }
                       return null;
                     },
@@ -198,8 +190,8 @@ class _UpdateAdsScreenState extends State<UpdateAdsScreen> {
                   CustomTextField(
                     controller: _priceController,
                     labelText: 'Budget/Price',
-                    hintText: '\$Enter budget amount',
-                    prefixIcon: const Icon(Icons.attach_money),
+                    hintText: 'Enter budget amount',
+                    prefixIcon: const Icon(Icons.attach_money, color: Colors.black),
                     keyboardType: TextInputType.number,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -219,34 +211,14 @@ class _UpdateAdsScreenState extends State<UpdateAdsScreen> {
                     controller: _urlController,
                     labelText: 'Destination URL',
                     hintText: 'Enter landing page URL',
-                    prefixIcon: const Icon(Icons.link),
+                    prefixIcon: const Icon(Icons.link, color: Colors.black),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter destination URL';
                       }
-                      final uri = Uri.tryParse(value);
-                      if (uri == null || !uri.hasAbsolutePath) {
-                        return 'Please enter valid URL';
-                      }
-                      return null;
-                    },
-                  ),
-                  
-                  CustomSpacer(height: 16),
-                  
-                  // Ad Description
-                  CustomTextField(
-                    controller: _descriptionController,
-                    labelText: 'Ad Description',
-                    hintText: 'Enter advertisement description',
-                    prefixIcon: const Icon(Icons.description),
-                    maxLines: 4,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter ad description';
-                      }
-                      if (value.length < 10) {
-                        return 'Description must be at least 10 characters';
+                      // More flexible URL validation
+                      if (!Uri.parse(value).hasAbsolutePath && !value.startsWith('http')) {
+                        return 'Please enter valid URL (e.g., https://example.com)';
                       }
                       return null;
                     },
@@ -286,88 +258,52 @@ class _UpdateAdsScreenState extends State<UpdateAdsScreen> {
     );
   }
 
-  Widget _buildImagePlaceholder(BuildContext context) {
-    return CustomColumn(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(
-          Icons.cloud_upload,
-          size: ResponsiveConfig.responsiveFont(context, 48),
-          color: Colors.grey[400],
-        ),
-        CustomSpacer(height: 8),
-        Text(
-          'Tap to change ad creative',
-          style: AppTextStyles.getBody(context).copyWith(
-            color: Colors.grey[600],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Choose Image Source'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Camera'),
-              onTap: () async {
-                Navigator.of(context).pop();
-                final XFile? image = await picker.pickImage(source: ImageSource.camera);
-                if (image != null) {
-                  setState(() {
-                    _selectedImage = image;
-                  });
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Gallery'),
-              onTap: () async {
-                Navigator.of(context).pop();
-                final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-                if (image != null) {
-                  setState(() {
-                    _selectedImage = image;
-                  });
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _removeImage() {
-    setState(() {
-      _selectedImage = null;
-    });
-  }
-
-  void _handleSubmit() {
+  Future<void> _handleSubmit() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
-      // Simulate API call
-      Future.delayed(const Duration(seconds: 2), () {
+      try {
+        final advertiseData = {
+          'title': _titleController.text.trim(),
+          'price': int.tryParse(_priceController.text.replaceAll('\$', '').trim()) ?? 0,
+          'url': _urlController.text.trim(),
+          'socialmedia': _platformController.text.trim(),
+          'date': _dateController.text.trim(),
+        };
+
+        UpdateAdvertiseModel result = await AdvertiseService.updateAdvertise(
+          widget.adData['id'],
+          advertiseData,
+        );
+        
         setState(() {
           _isLoading = false;
         });
         
-        _showSuccessDialog();
-      });
+        if (result.status == true) {
+          _showSuccessDialog();
+        } else {
+          Get.snackbar(
+            'Error',
+            result.message ?? 'Failed to update advertisement',
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
+        }
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+        
+        Get.snackbar(
+          'Error',
+          'Failed to update advertisement: $e',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
     }
   }
 
@@ -380,8 +316,8 @@ class _UpdateAdsScreenState extends State<UpdateAdsScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
+              Navigator.of(context).pop(); // Close dialog
+              Navigator.of(context).pop(); // Go back to list screen
             },
             child: const Text('OK'),
           ),

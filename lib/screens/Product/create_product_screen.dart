@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'dart:io';
 import '../../controllers/create_product_controller.dart';
 import '../../utils/responsive_config.dart';
 import '../../widgets/widgets.dart';
 import 'package:rizesterapp/screens/main_screen.dart';
 import '../notification_screen.dart' as notification;
 import 'package:rizesterapp/screens/Profile/profile_screen.dart';
+import '../../App_model/category_helper.dart';
 
 class CreateProductScreen extends StatefulWidget {
   final bool showAppBar;
@@ -95,8 +97,8 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                                       borderRadius: BorderRadius.circular(ResponsiveConfig.responsiveRadius(context, 12)),
                                       child: Stack(
                                         children: [
-                                          Image.asset(
-                                            controller.selectedImage.value!.path,
+                                          Image.file(
+                                            File(controller.selectedImage.value!.path),
                                             fit: BoxFit.cover,
                                             width: double.infinity,
                                             height: double.infinity,
@@ -137,23 +139,58 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                   CustomSpacer(height: 24),
                   
                   // Category
-                  CustomDropdownButtonFormField<String>(
-                    value: controller.categoryController.text.isEmpty ? null : controller.categoryController.text,
-                    labelText: 'Category',
-                    hintText: 'Select category',
-                    items: controller.jewelleryCategories.map((String category) {
-                      return DropdownMenuItem<String>(
-                        value: category,
-                        child: Text(category),
-                      );
-                    }).toList(),
-                    onChanged: controller.updateCategory,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please select category';
-                      }
-                      return null;
-                    },
+                  Obx(
+                    () => controller.isCategoriesLoading.value
+                        ? CustomDropdownButtonFormField<String>(
+                            value: null,
+                            labelText: 'Category',
+                            hintText: 'Loading categories...',
+                            items: const [],
+                            onChanged: null,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please select category';
+                              }
+                              return null;
+                            },
+                          )
+                        : controller.categoryController.text.isEmpty
+                            ? CustomDropdownButtonFormField<String>(
+                                value: null,
+                                labelText: 'Category',
+                                hintText: 'Select category',
+                                items: controller.categories.map((CategoryHelper category) {
+                                  return DropdownMenuItem<String>(
+                                    value: category.name,
+                                    child: Text(category.name),
+                                  );
+                                }).toList(),
+                                onChanged: controller.updateCategoryString,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please select category';
+                                  }
+                                  return null;
+                                },
+                              )
+                            : CustomDropdownButtonFormField<String>(
+                                value: controller.categoryController.text,
+                                labelText: 'Category',
+                                hintText: 'Select category',
+                                items: controller.categories.map((CategoryHelper category) {
+                                  return DropdownMenuItem<String>(
+                                    value: category.name,
+                                    child: Text(category.name),
+                                  );
+                                }).toList(),
+                                onChanged: controller.updateCategoryString,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please select category';
+                                  }
+                                  return null;
+                                },
+                              ),
                   ),
                   
                   CustomSpacer(height: 16),

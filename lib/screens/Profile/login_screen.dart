@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import '../../controllers/login_controller.dart';
 import '../../utils/responsive_config.dart';
 import '../../widgets/widgets.dart';
-import '../main_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -14,7 +13,6 @@ class LoginScreen extends StatelessWidget {
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      resizeToAvoidBottomInset: false,
       body: CustomStack(
         children: [
           // Background image - absolutely stable
@@ -46,6 +44,9 @@ class LoginScreen extends StatelessWidget {
             child: SingleChildScrollView(
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               physics: const ClampingScrollPhysics(),
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+              ),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
                   minHeight: size.height,

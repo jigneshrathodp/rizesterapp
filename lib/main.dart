@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:rizesterapp/screens/dashboard_screen.dart';
 import 'package:rizesterapp/screens/Profile/login_screen.dart';
@@ -6,9 +7,17 @@ import 'package:rizesterapp/screens/main_screen.dart';
 import 'package:rizesterapp/screens/splash_screen.dart';
 import 'package:rizesterapp/utils/auth_helper.dart';
 import 'package:rizesterapp/controllers/global_profile_controller.dart';
+import 'package:rizesterapp/services/api_cache_service.dart';
 
-
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Set preferred orientations for better performance
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+  
   // Initialize AuthHelper
   Get.put(AuthHelper());
   
@@ -18,11 +27,10 @@ void main() {
   // Initialize MainScreenController for dashboard access
   Get.put(MainScreenController());
   
+  // Clear old cache on app start
+  await ApiCacheService.clearCache();
+  
   runApp(
-    // DevicePreview(
-    //   enabled: true,
-    //   builder: (context) => const MyApp(),
-    // ),
     const MyApp(),
   );
 }
@@ -48,10 +56,8 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'RizesterApp',
       useInheritedMediaQuery: true,
-
-      //DevicePreview
-      // builder: DevicePreview.appBuilder,
-      // locale: DevicePreview.locale(context),
+      debugShowCheckedModeBanner: false,
+      defaultTransition: Transition.noTransition,
 
       theme: ThemeData(
         primarySwatch: Colors.grey,
@@ -64,18 +70,46 @@ class MyApp extends StatelessWidget {
         pageTransitionsTheme: PageTransitionsTheme(
           builders: {
             TargetPlatform.android: NoTransitionsBuilder(),
-            TargetPlatform.iOS: NoTransitionsBuilder(),
+            TargetPlatform.iOS:  NoTransitionsBuilder(),
           },
         ),
+        // Performance optimizations
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(fontFamily: 'Roboto'),
+        ),
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const SplashScreen(), // Use splash screen as home
+      
+      home: const SplashScreen(),
+      
       getPages: [
-        GetPage(name: '/login', page: () => const LoginScreen()),
-        GetPage(name: '/main', page: () => const MainScreen()),
-        GetPage(name: '/dashboard', page: () => const DashboardScreen(showAppBar: true)),
+        GetPage(
+          name: '/login', 
+          page: () => const LoginScreen(),
+          transition: Transition.fadeIn,
+          transitionDuration: const Duration(milliseconds: 200),
+        ),
+        GetPage(
+          name: '/main', 
+          page: () => const MainScreen(),
+          transition: Transition.fadeIn,
+          transitionDuration: const Duration(milliseconds: 200),
+        ),
+        GetPage(
+          name: '/dashboard', 
+          page: () => const DashboardScreen(showAppBar: true),
+          transition: Transition.fadeIn,
+          transitionDuration: const Duration(milliseconds: 200),
+        ),
       ],
-      debugShowCheckedModeBanner: false,
-      defaultTransition: Transition.noTransition,
+      
+      // Performance optimizations
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+          child: child!,
+        );
+      },
     );
   }
 }

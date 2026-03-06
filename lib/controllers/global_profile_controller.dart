@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../services/auth_service.dart';
 import '../App_model/profile_model/GetProfileModel.dart';
@@ -27,10 +26,8 @@ class GlobalProfileController extends GetxController {
     
     try {
       profileModel.value = await AuthService.getProfileDetails();
-      print('Global profile data loaded: ${profileModel.value?.toJson()}');
     } catch (e) {
       errorMessage.value = 'Failed to load profile: $e';
-      print('Error loading global profile: $e');
     } finally {
       isLoading.value = false;
     }

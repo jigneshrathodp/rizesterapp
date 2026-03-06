@@ -23,7 +23,7 @@ class GetDashboardModel {
 }
 
 class NotificationData {
-  dynamic? id;
+  dynamic id;
   String? type;
   String? status;
   dynamic advertise;
@@ -113,15 +113,15 @@ class Data {
 }
 
 class Stats {
-  dynamic? totalCategories;
-  dynamic? totalProducts;
-  dynamic? totalSoldProducts;
-  dynamic? totalOrders;
-  dynamic? currentMonthOrders;
-  dynamic? totalProductCost;
-  dynamic? totalSoldPrice;
-  dynamic? totalAdvertisements;
-  dynamic? totalAdvertisePrice;
+  dynamic totalCategories;
+  dynamic totalProducts;
+  dynamic totalSoldProducts;
+  dynamic totalOrders;
+  dynamic currentMonthOrders;
+  dynamic totalProductCost;
+  dynamic totalSoldPrice;
+  dynamic totalAdvertisements;
+  dynamic totalAdvertisePrice;
 
   Stats(
       {this.totalCategories,
@@ -199,7 +199,7 @@ class Profile {
 }
 
 class Details {
-  dynamic? id;
+  dynamic id;
   String? name;
   String? email;
   String? image;

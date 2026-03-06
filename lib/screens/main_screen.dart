@@ -17,19 +17,24 @@ import 'Order/order_now_screen.dart';
 import 'Profile/profile_screen.dart';
 import '../controllers/category_list_controller.dart';
 
+class ScaffoldKeyService extends GetxService {
+  static final GlobalKey<ScaffoldState> mainScaffoldKey = GlobalKey<ScaffoldState>();
+}
+
 class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(MainScreenController());
+    Get.put(ScaffoldKeyService());
 
     return Scaffold(
-      key: controller.scaffoldKey,
+      key: ScaffoldKeyService.mainScaffoldKey,
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
         logoAsset: 'assets/black.png',
-        onMenuPressed: () => controller.scaffoldKey.currentState?.openDrawer(),
+        onMenuPressed: () => ScaffoldKeyService.mainScaffoldKey.currentState?.openDrawer(),
         onNotificationPressed: () => Get.to(() => const notification.NotificationScreen()),
         onProfilePressed: () => Get.to(() => const ProfileScreen()),
       ),
@@ -51,7 +56,6 @@ class MainScreen extends StatelessWidget {
 }
 
 class MainScreenController extends GetxController {
-  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   final selectedIndex = 0.obs;
 
   final List<Widget> screens = [

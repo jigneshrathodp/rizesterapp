@@ -23,18 +23,18 @@ class UpdateProductModel {
 }
 
 class Data {
-  int? id;
-  String? categoryId;
-  String? name;
-  String? sku;
-  String? quantity;
-  String? sellPrice;
-  String? weightInGram;
-  String? costPerGram;
-  int? totalCost;
-  String? image;
-  int? active;
-  int? forSale;
+  dynamic id;
+  dynamic categoryId;
+  dynamic name;
+  dynamic sku;
+  dynamic quantity;
+  dynamic sellPrice;
+  dynamic weightInGram;
+  dynamic costPerGram;
+  dynamic totalCost;
+  dynamic image;
+  dynamic active;
+  dynamic forSale;
 
   Data(
       {this.id,

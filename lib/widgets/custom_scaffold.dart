@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../utils/responsive_config.dart';
 
 class CustomScaffold extends StatelessWidget {
   final Widget? body;

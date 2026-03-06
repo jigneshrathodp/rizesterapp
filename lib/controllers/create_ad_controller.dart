@@ -1,86 +1,89 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
+import '../services/advertise_service.dart';
+import '../App_model/Advertise_model/CreateAdvertiseModel.dart';
+import '../services/snackbar_service.dart';
 
 class CreateAdController extends GetxController {
   final formKey = GlobalKey<FormState>();
   final titleController = TextEditingController();
   final priceController = TextEditingController();
   final urlController = TextEditingController();
-  final descriptionController = TextEditingController();
+  final platformController = TextEditingController();
+  final selectedPlatform = ''.obs;
+  final dateController = TextEditingController();
+  DateTime selectedDate = DateTime.now();
   
-  final selectedPlatform = 'Facebook'.obs;
-  final selectedImage = Rx<XFile?>(null);
   final isLoading = false.obs;
-  
-  final ImagePicker picker = ImagePicker();
-
-  var scaffoldKey;
   
   @override
   void onClose() {
     titleController.dispose();
     priceController.dispose();
     urlController.dispose();
-    descriptionController.dispose();
+    platformController.dispose();
+    dateController.dispose();
     super.onClose();
   }
   
-  void updatePlatform(String? value) {
-    if (value != null) {
-      selectedPlatform.value = value;
+  Future<void> selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null && picked != selectedDate) {
+      selectedDate = picked;
+      dateController.text = "${picked.toLocal()}".split(' ')[0];
     }
   }
   
-  Future<void> pickImage() async {
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Choose Image Source'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Camera'),
-              onTap: () async {
-                Get.back();
-                final XFile? image = await picker.pickImage(source: ImageSource.camera);
-                if (image != null) {
-                  selectedImage.value = image;
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Gallery'),
-              onTap: () async {
-                Get.back();
-                final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-                if (image != null) {
-                  selectedImage.value = image;
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-  
-  void removeImage() {
-    selectedImage.value = null;
-  }
-  
-  void handleSubmit() {
+  Future<void> handleSubmit() async {
     if (formKey.currentState!.validate()) {
       isLoading.value = true;
-
-      // Simulate API call
-      Future.delayed(const Duration(seconds: 2), () {
+      
+      try {
+        // Clean and validate URL
+        String url = urlController.text.trim();
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+          url = 'https://$url';
+        }
+        if (url.startsWith('https:/') && !url.startsWith('https://')) {
+          url = url.replaceFirst('https:/', 'https://');
+        }
+        
+        final advertiseData = {
+          'title': titleController.text.trim(),
+          'price': int.tryParse(priceController.text.replaceAll('\$', '').trim()) ?? 0,
+          'url': url,
+          'socialmedia': platformController.text.trim(),
+          'date': dateController.text.trim(),
+        };
+        
+        CreateAdvertiseModel result = await AdvertiseService.createAdvertise(advertiseData);
+        
+        if (result.status == true) {
+          SnackbarService.showSuccess(result.message ?? 'Advertisement created successfully');
+          clearForm();
+          Get.back();
+        } else {
+          SnackbarService.showError(result.message ?? 'Failed to create advertisement');
+        }
+      } catch (e) {
+        SnackbarService.showException(Exception(e.toString()));
+      } finally {
         isLoading.value = false;
-        showSuccessDialog();
-      });
+      }
     }
+  }
+  
+  void clearForm() {
+    titleController.clear();
+    priceController.clear();
+    urlController.clear();
+    platformController.clear();
+    dateController.clear();
   }
   
   void showSuccessDialog() {
@@ -91,8 +94,8 @@ class CreateAdController extends GetxController {
         actions: [
           TextButton(
             onPressed: () {
-              Get.back();
-              Get.back();
+              Get.back(); // Close dialog
+              Get.back(); // Go back to list screen
             },
             child: const Text('OK'),
           ),

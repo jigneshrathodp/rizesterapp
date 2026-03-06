@@ -469,24 +469,6 @@ class _UpdateCategoryScreenState extends State<UpdateCategoryScreen> {
     }
   }
 
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Success'),
-        content: const Text('Category updated successfully!'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
-            },
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _UpdateCategoryAppBarWrapper extends StatelessWidget implements PreferredSizeWidget {
