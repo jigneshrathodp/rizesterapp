@@ -2,19 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/buy_now_controller.dart';
 import '../../widgets/widgets.dart';
-import 'package:rizesterapp/screens/main_screen.dart';
-import '../notification_screen.dart' as notification;
-import 'package:rizesterapp/screens/Profile/profile_screen.dart';
 import '../../utils/responsive_config.dart';
 
 class BuyNowScreen extends StatelessWidget {
   final Map<String, dynamic> product;
-  final bool showAppBar;
 
   const BuyNowScreen({
     super.key,
     required this.product,
-    this.showAppBar = true,
   });
 
   @override
@@ -29,47 +24,20 @@ class BuyNowScreen extends StatelessWidget {
         product['weight'] * product['costPerGram'];
 
     return Scaffold(
-      key: controller.scaffoldKey,
       backgroundColor: Colors.grey.shade100,
 
-      appBar: showAppBar
-          ? CustomAppBar(
-        logoAsset: 'assets/black.png',
-        onMenuPressed: () => controller.scaffoldKey.currentState?.openDrawer(),
-        onNotificationPressed: () =>
-            Get.to(() => const notification.NotificationScreen()),
-        onProfilePressed: () => Get.to(() => const ProfileScreen()),
-      )
-          : null,
+      appBar: CustomAppBar(
+        title: 'Checkout',
+        onBackPressed: () => Navigator.pop(context),
+      ),
 
-      drawer: showAppBar
-          ? SizedBox(
-        width: ResponsiveConfig.getWidth(context) * 0.6,
-        child: CustomDrawer(
-          selectedIndex: 1,
-          onItemTapped: (index) {
-            Navigator.pop(context);
-            Get.offAll(() => const MainScreen());
+      body: SafeArea(
+        child: CustomScrollWidget(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
 
-            Future.microtask(() {
-              final main = Get.find<MainScreenController>();
-              main.onItemTapped(index);
-            });
-          },
-          logoAsset: 'assets/white.png',
-        ),
-      )
-          : null,
-
-      body: CustomScrollWidget(
-        children: [
-
-          const ScreenTitle(title: "Checkout"),
-
-          Padding(
-            padding: const EdgeInsets.all(16),
-
-            child: Column(
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
 
@@ -129,8 +97,11 @@ class BuyNowScreen extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
+
+
 
   /// PRODUCT SUMMARY CARD
   Widget _productSummary(BuildContext context, double totalCost) {

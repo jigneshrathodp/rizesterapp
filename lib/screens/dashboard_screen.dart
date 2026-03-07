@@ -16,7 +16,6 @@ class DashboardScreen extends StatelessWidget {
     Get.back(); // Close drawer first
     
     if (index == 0) {
-      // Already on dashboard, do nothing
       return;
     }
     
@@ -32,26 +31,20 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: showAppBar
-          ? _CustomAppBarWrapper(
-              logoAsset: 'assets/black.png',
-              onNotificationPressed: () => Get.to(() => const notification.NotificationScreen()),
-              onProfilePressed: () => Get.to(() => const ProfileScreen()),
-            )
-          : null,
-      drawer: showAppBar
-          ? SizedBox(
-              width: ResponsiveConfig.getWidth(context) * 0.6,
-              child: CustomDrawer(
-                selectedIndex: 0, // Dashboard is always selected
-                onItemTapped: DashboardScreen._handleDrawerNavigation,
-                logoAsset: 'assets/white.png',
-              ),
-            )
-          : null,
+      appBar: showAppBar ? PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: _CustomAppBarWrapper(
+          logoAsset: 'assets/black.png',
+          onNotificationPressed: () {
+            Get.to(() => notification.NotificationScreen());
+          },
+          onProfilePressed: () {
+            Get.to(() => const ProfileScreen());
+          },
+        ),
+      ) : null,
       body: SafeArea(
         child: GestureDetector(
           onTap: () {
@@ -60,66 +53,66 @@ class DashboardScreen extends StatelessWidget {
           child: KeyboardAvoider(
             child: CustomScrollWidget(
               children: [
-                const ScreenTitle(title: 'Dashboard'),
+                if (!showAppBar) const ScreenTitle(title: 'Dashboard'),
                 Padding(
                   padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
                   child: DashboardFutureBuilder(
-                  onLoading: () => const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(40.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircularProgressIndicator(),
-                          SizedBox(height: 20),
-                          Text('Loading dashboard data...'),
-                        ],
+                    onLoading: () => const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(40.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(height: 20),
+                            Text('Loading dashboard data...'),
+                          ],
+                        ),
                       ),
                     ),
+                    onError: (error) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Failed to load dashboard: $error'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      });
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.error_outline, size: 50, color: Colors.grey[400]),
+                            SizedBox(height: 10),
+                            Text(
+                              'Failed to load dashboard',
+                              style: TextStyle(color: Colors.grey[600]),
+                            ),
+                            SizedBox(height: 10),
+                            TextButton(
+                              onPressed: () => Get.reload(),
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    onSuccess: (dashboardModel) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Dashboard loaded successfully'),
+                          ),
+                        );
+                      });
+                      return _buildDashboardStats(context, dashboardModel);
+                    },
                   ),
-                  onError: (error) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Failed to load dashboard: $error'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    });
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.error_outline, size: 50, color: Colors.grey[400]),
-                          SizedBox(height: 10),
-                          Text(
-                            'Failed to load dashboard',
-                            style: TextStyle(color: Colors.grey[600]),
-                          ),
-                          SizedBox(height: 10),
-                          TextButton(
-                            onPressed: () => Get.reload(),
-                            child: const Text('Retry'),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                  onSuccess: (dashboardModel) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Dashboard loaded successfully'),
-                        ),
-                      );
-                    });
-                    return _buildDashboardStats(context, dashboardModel);
-                  },
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
         ),
       ),
     );

@@ -9,9 +9,7 @@ import '../notification_screen.dart' as notification;
 import 'package:rizesterapp/screens/Profile/profile_screen.dart';
 
 class OrderNowScreen extends StatefulWidget {
-  final bool showAppBar;
-
-  const OrderNowScreen({super.key, this.showAppBar = false});
+  const OrderNowScreen({super.key});
 
   @override
   State<OrderNowScreen> createState() => _OrderNowScreenState();
@@ -19,87 +17,47 @@ class OrderNowScreen extends StatefulWidget {
 
 class _OrderNowScreenState extends State<OrderNowScreen> {
 
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(OrderNowController());
 
-    return Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: Colors.grey.shade100,
+    return CustomScrollWidget(
+      children: [
+        const ScreenTitle(title: 'Order Now'),
 
-      appBar: widget.showAppBar
-          ? CustomAppBar(
-        logoAsset: 'assets/black.png',
-        onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
-        onNotificationPressed: () =>
-            Get.to(() => const notification.NotificationScreen()),
-        onProfilePressed: () => Get.to(() => const ProfileScreen()),
-      )
-          : null,
+        Padding(
+          padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
+          child: Obx(() => controller.isLoading.value
+              ? const Center(
+                  child: CircularProgressIndicator(),
+                )
+              : controller.products.isEmpty
+                  ? _buildEmptyState()
+                  : GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
 
-      drawer: widget.showAppBar
-          ? SizedBox(
-        width: ResponsiveConfig.getWidth(context) * 0.6,
-        child: CustomDrawer(
-          selectedIndex: 1,
-          onItemTapped: (index) {
-            Navigator.pop(context);
-            Get.offAll(() => const MainScreen());
+            gridDelegate:
+            const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 0.80,
+            ),
 
-            Future.microtask(() {
-              final main = Get.find<MainScreenController>();
-              main.onItemTapped(index);
-            });
-          },
-          logoAsset: 'assets/white.png',
+            itemCount: controller.products.length,
+
+            itemBuilder: (context, index) {
+              final product = controller.products[index];
+
+              return ProductCard(
+                product: product,
+                onTap: () => _navigateToProductDetail(product),
+              );
+            },
+          )),
         ),
-      )
-          : null,
-
-      body: CustomScrollWidget(
-        children: [
-
-          const ScreenTitle(title: 'Order Now'),
-
-          Padding(
-            padding: EdgeInsets.all(ResponsiveConfig.spacingMd(context)),
-
-            child: Obx(() => controller.isLoading.value
-                ? const Center(
-                    child: CircularProgressIndicator(),
-                  )
-                : controller.products.isEmpty
-                    ? _buildEmptyState()
-                    : GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-
-              gridDelegate:
-              const SliverGridDelegateWithFixedCrossAxisCount(
-
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 0.80,
-              ),
-
-              itemCount: controller.products.length,
-
-              itemBuilder: (context, index) {
-
-                final product = controller.products[index];
-
-                return ProductCard(
-                  product: product,
-                  onTap: () => _navigateToProductDetail(product),
-                );
-              },
-            )),
-          ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -150,7 +108,6 @@ class _OrderNowScreenState extends State<OrderNowScreen> {
       MaterialPageRoute(
         builder: (context) => ProductDetailScreen(
           product: product,
-          showAppBar: widget.showAppBar,
         ),
       ),
     );

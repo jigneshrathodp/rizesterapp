@@ -10,9 +10,7 @@ class OrderListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(OrderListController());
     
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Column(
+    return Column(
         children: [
           ScreenTitle(
             title: 'Order List',
@@ -228,7 +226,6 @@ class OrderListScreen extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 }

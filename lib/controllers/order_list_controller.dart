@@ -157,7 +157,7 @@ class OrderListController extends GetxController {
   }
   
   void navigateToOrderNow() {
-    Get.to(() => const OrderNowScreen(showAppBar: true))?.then((_) {
+    Get.to(() => const OrderNowScreen())?.then((_) {
       refreshOrders();
     });
   }

@@ -15,10 +15,7 @@ class _AdvertiseListScreenState extends State<AdvertiseListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      backgroundColor: Colors.white,
-      body: Column(
+    return Column(
         children: [
           ScreenTitle(
             title: 'Advertise List',
@@ -194,50 +191,49 @@ class _AdvertiseListScreenState extends State<AdvertiseListScreen> {
               ],
             ),
           ),
-        ],
-      ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Obx(
-          () => Container(
-            padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(
-                top: BorderSide(color: Colors.grey),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: Text(
-                    'Showing ${((controller.currentPage.value - 1) * int.parse(controller.selectedEntries.value)) + 1} to ${((controller.currentPage.value - 1) * int.parse(controller.selectedEntries.value)) + controller.paginatedData.length} of ${controller.advertiseData.length} entries',
+          SafeArea(
+            top: false,
+            child: Obx(
+              () => Container(
+                padding: const EdgeInsets.all(16),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  border: Border(
+                    top: BorderSide(color: Colors.grey),
                   ),
                 ),
-                Row(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    ElevatedButton(
-                      onPressed: controller.currentPage.value > 1
-                          ? controller.goToPreviousPage
-                          : null,
-                      child: const Text('Previous'),
+                    Flexible(
+                      child: Text(
+                        'Showing ${((controller.currentPage.value - 1) * int.parse(controller.selectedEntries.value)) + 1} to ${((controller.currentPage.value - 1) * int.parse(controller.selectedEntries.value)) + controller.paginatedData.length} of ${controller.advertiseData.length} entries',
+                      ),
                     ),
-                    const SizedBox(width: 10),
-                    ElevatedButton(
-                      onPressed: controller.currentPage.value < controller.totalPages.value
-                          ? controller.goToNextPage
-                          : null,
-                      child: const Text('Next'),
+                    Row(
+                      children: [
+                        ElevatedButton(
+                          onPressed: controller.currentPage.value > 1
+                              ? controller.goToPreviousPage
+                              : null,
+                          child: const Text('Previous'),
+                        ),
+                        const SizedBox(width: 10),
+                        ElevatedButton(
+                          onPressed: controller.currentPage.value < controller.totalPages.value
+                              ? controller.goToNextPage
+                              : null,
+                          child: const Text('Next'),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
-    );
+        ],
+      );
   }
 }
 

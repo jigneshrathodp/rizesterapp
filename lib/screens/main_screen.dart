@@ -36,7 +36,7 @@ class MainScreen extends StatelessWidget {
         logoAsset: 'assets/black.png',
         onMenuPressed: () => ScaffoldKeyService.mainScaffoldKey.currentState?.openDrawer(),
         onNotificationPressed: () => Get.to(() => const notification.NotificationScreen()),
-        onProfilePressed: () => Get.to(() => const ProfileScreen()),
+        onProfilePressed: () => Get.to(() => const ProfileScreen(showAppBar: true)),
       ),
       drawer: SizedBox(
         width: ResponsiveConfig.getWidth(context) * 0.6,

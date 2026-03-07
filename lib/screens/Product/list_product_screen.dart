@@ -14,9 +14,7 @@ class ProductListScreen extends StatelessWidget {
         ? Get.find<ProductListController>()
         : Get.put(ProductListController());
     
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Column(
+    return Column(
         children: [
           ScreenTitle(
             title: 'Product List',
@@ -274,7 +272,6 @@ class ProductListScreen extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 }

@@ -10,7 +10,8 @@ import '../notification_screen.dart' as notification;
 import '../main_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final bool showAppBar;
+  const ProfileScreen({super.key, this.showAppBar = false});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -127,35 +128,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: Colors.white,
-      appBar: CustomAppBar(
-        logoAsset: 'assets/black.png',
-        onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
-        onNotificationPressed: () => Get.to(() => const notification.NotificationScreen()),
-        onProfilePressed: () {},
-      ),
-      drawer: SizedBox(
-        width: ResponsiveConfig.getWidth(context) * 0.6,
-        child: (controller != null)
-            ? Obx(
-                () => CustomDrawer(
-                  selectedIndex: controller.selectedIndex.value,
-                  onItemTapped: controller.onItemTapped,
-                  logoAsset: 'assets/white.png',
-                ),
-              )
-            : CustomDrawer(
-                selectedIndex: 0,
-                onItemTapped: (index) {
-                  Navigator.pop(context);
-                  Get.offAll(() => const MainScreen());
-                  Future.microtask(() {
-                    final main = Get.find<MainScreenController>();
-                    main.onItemTapped(index);
-                  });
-                },
-                logoAsset: 'assets/white.png',
-              ),
-      ),
+      appBar: widget.showAppBar ? PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: _CustomAppBarWrapper(
+          logoAsset: 'assets/black.png',
+          onNotificationPressed: () {
+            Get.to(() => notification.NotificationScreen());
+          },
+          onProfilePressed: () {
+            Get.to(() => const ProfileScreen());
+          },
+        ),
+      ) : null,
       body: CustomScrollWidget(
         children: [
           const ScreenTitle(title: 'Profile'),
@@ -554,4 +538,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
+}
+
+class _CustomAppBarWrapper extends StatelessWidget implements PreferredSizeWidget {
+  final String logoAsset;
+  final VoidCallback onNotificationPressed;
+  final VoidCallback onProfilePressed;
+
+  const _CustomAppBarWrapper({
+    required this.logoAsset,
+    required this.onNotificationPressed,
+    required this.onProfilePressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Builder(
+      builder: (context) => CustomAppBar(
+        logoAsset: logoAsset,
+        onMenuPressed: () => Scaffold.of(context).openDrawer(),
+        onNotificationPressed: onNotificationPressed,
+        onProfilePressed: onProfilePressed,
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }

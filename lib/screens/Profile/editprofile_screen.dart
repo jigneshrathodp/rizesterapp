@@ -15,6 +15,16 @@ class EditProfileScreen extends StatelessWidget {
     
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Edit Profile'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Get.back(),
+        ),
+      ),
       body: Obx(
         () => controller.isLoadingProfile.value
             ? const Center(
