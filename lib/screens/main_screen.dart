@@ -59,7 +59,7 @@ class MainScreenController extends GetxController {
   final selectedIndex = 0.obs;
 
   final List<Widget> screens = [
-    const DashboardScreen(),//1
+    const DashboardScreen(),//0
     const OrderNowScreen(),//1
     const ProductListScreen(),//2
     const CategoryListScreen(),//3
@@ -69,8 +69,9 @@ class MainScreenController extends GetxController {
     const CreateAdScreen(),//7
     const CreateProductScreen(),//8
     const CreateCategoryScreen(),//9
-    const EditProfileScreen(),//10
-    const ChangePasswordScreen(),//11
+    const ProfileScreen(),//10
+    const EditProfileScreen(),//11
+    const ChangePasswordScreen(),//12
   ];
 
   void onItemTapped(int index) {

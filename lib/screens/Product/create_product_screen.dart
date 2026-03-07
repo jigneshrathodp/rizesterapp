@@ -405,6 +405,24 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                     ),
                   ),
                   
+                  CustomSpacer(height: 16),
+                  
+                  // Sold Status
+                  Obx(
+                    () => CustomDropdownButtonFormField<String>(
+                      value: controller.selectedSoldStatus.value,
+                      labelText: 'Sold Status',
+                      hintText: 'Select sold status',
+                      items: const ['Sold', 'Unsold'].map((String status) {
+                        return DropdownMenuItem<String>(
+                          value: status,
+                          child: Text(status),
+                        );
+                      }).toList(),
+                      onChanged: controller.updateSoldStatus,
+                    ),
+                  ),
+                  
                   CustomSpacer(height: 32),
                   
                   // Action Buttons

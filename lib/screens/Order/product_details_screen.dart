@@ -117,6 +117,17 @@ class ProductDetailScreen extends StatelessWidget {
 
                 const SizedBox(height: 10),
 
+                /// PRODUCT CATEGORY
+                Text(
+                  "Category: ${product.category}",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
                 /// PRODUCT INFO
                 Row(
                   children: [
@@ -126,7 +137,55 @@ class ProductDetailScreen extends StatelessWidget {
                     const SizedBox(width: 8),
 
                     _infoChip("₹${product.costPerGram}/g"),
+
+                    const SizedBox(width: 8),
+
+                    _infoChip("SKU: ${product.id}"),
                   ],
+                ),
+
+                const SizedBox(height: 20),
+
+                /// DETAILED INFO CARD
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(18),
+
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      )
+                    ],
+                  ),
+
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+
+                      const Text(
+                        "Product Details",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      _detailRow("Product ID", product.id.toString()),
+                      _detailRow("Name", product.name),
+                      _detailRow("Category", product.category),
+                      _detailRow("Weight", "${product.weight} g"),
+                      _detailRow("Cost per Gram", "₹${product.costPerGram}"),
+                      _detailRow("Total Cost", "₹${totalCost.toStringAsFixed(0)}"),
+
+                    ],
+                  ),
                 ),
 
                 const SizedBox(height: 20),
@@ -214,6 +273,7 @@ class ProductDetailScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -241,6 +301,35 @@ class ProductDetailScreen extends StatelessWidget {
       child: Text(
         text,
         style: const TextStyle(fontSize: 13),
+      ),
+    );
+  }
+
+  Widget _detailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              "$label:",
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                color: Colors.grey,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

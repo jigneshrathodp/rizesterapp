@@ -62,12 +62,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: const Color(0xfff5f6fa),
-      appBar: CustomAppBar(
-        logoAsset: 'assets/black.png',
-        onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
-        onNotificationPressed: () => Get.back(),
-        onProfilePressed: () => Get.to(() => const ProfileScreen()),
-      ),
       drawer: controller != null
           ? SizedBox(
               width: MediaQuery.of(context).size.width * 0.6,

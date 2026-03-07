@@ -157,7 +157,9 @@ class OrderListController extends GetxController {
   }
   
   void navigateToOrderNow() {
-    Get.to(() => const OrderNowScreen(showAppBar: true));
+    Get.to(() => const OrderNowScreen(showAppBar: true))?.then((_) {
+      refreshOrders();
+    });
   }
   
   Future<void> deleteOrder(int id) async {

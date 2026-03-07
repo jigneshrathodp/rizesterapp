@@ -117,6 +117,7 @@ class BuyNowScreen extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
                           ),
                   )),
@@ -157,11 +158,23 @@ class BuyNowScreen extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
 
-            child: Image.asset(
+            child: Image.network(
               product['imageUrl'],
               width: 70,
               height: 70,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: 70,
+                  height: 70,
+                  color: Colors.grey[200],
+                  child: const Icon(
+                    Icons.image,
+                    color: Colors.grey,
+                    size: 30,
+                  ),
+                );
+              },
             ),
           ),
 
@@ -184,6 +197,16 @@ class BuyNowScreen extends StatelessWidget {
 
                 const SizedBox(height: 6),
 
+                Text(
+                  "Category: ${product['category']}",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                ),
+
+                const SizedBox(height: 4),
+
                 Row(
                   children: [
 
@@ -192,6 +215,10 @@ class BuyNowScreen extends StatelessWidget {
                     const SizedBox(width: 6),
 
                     _chip("₹${product['costPerGram']}/g"),
+
+                    const SizedBox(width: 6),
+
+                    _chip("ID: ${product['id']}"),
                   ],
                 ),
 

@@ -228,8 +228,9 @@ class CustomDrawer extends StatelessWidget {
       const DrawerItem(icon: Icons.post_add, title: 'Create Ad'),//7
       const DrawerItem(icon: Icons.add_circle, title: 'Create Product'),//8
       const DrawerItem(icon: Icons.category_outlined, title: 'Create Category'),//9
-      const DrawerItem(icon: Icons.person, title: 'Edit Profile'),//10
-      const DrawerItem(icon: Icons.lock, title: 'Change Password'),//11
+      const DrawerItem(icon: Icons.person, title: 'Profile'),//10
+      const DrawerItem(icon: Icons.edit, title: 'Edit Profile'),//11
+      const DrawerItem(icon: Icons.lock, title: 'Change Password'),//12
     ];
   }
 }

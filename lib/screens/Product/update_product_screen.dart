@@ -140,43 +140,26 @@ class UpdateProductScreen extends StatelessWidget {
                               return null;
                             },
                           )
-                        : controller.categoryController.text.isEmpty
-                            ? CustomDropdownButtonFormField<String>(
-                                value: null,
-                                labelText: 'Category',
-                                hintText: 'Select category',
-                                items: controller.categories.map((category) {
-                                  return DropdownMenuItem<String>(
-                                    value: category.name,
-                                    child: Text(category.name),
-                                  );
-                                }).toList(),
-                                onChanged: controller.updateCategoryString,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please select category';
-                                  }
-                                  return null;
-                                },
-                              )
-                            : CustomDropdownButtonFormField<String>(
-                                value: controller.categoryController.text,
-                                labelText: 'Category',
-                                hintText: 'Select category',
-                                items: controller.categories.map((category) {
-                                  return DropdownMenuItem<String>(
-                                    value: category.name,
-                                    child: Text(category.name),
-                                  );
-                                }).toList(),
-                                onChanged: controller.updateCategoryString,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please select category';
-                                  }
-                                  return null;
-                                },
-                              ),
+                        : CustomDropdownButtonFormField<String>(
+                            value: controller.categoryController.text.isNotEmpty 
+                                ? controller.categoryController.text 
+                                : null,
+                            labelText: 'Category',
+                            hintText: 'Select category',
+                            items: controller.categories.map((category) {
+                              return DropdownMenuItem<String>(
+                                value: category.name,
+                                child: Text(category.name),
+                              );
+                            }).toList(),
+                            onChanged: controller.updateCategoryString,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please select category';
+                              }
+                              return null;
+                            },
+                          ),
                   ),
                   
                   CustomSpacer(height: 16),
@@ -391,6 +374,24 @@ class UpdateProductScreen extends StatelessWidget {
                     ),
                   ),
                   
+                  CustomSpacer(height: 16),
+                  
+                  // Sold Status
+                  Obx(
+                    () => CustomDropdownButtonFormField<String>(
+                      value: controller.selectedSoldStatus.value,
+                      labelText: 'Sold Status',
+                      hintText: 'Select sold status',
+                      items: const ['Sold', 'Unsold'].map((String status) {
+                        return DropdownMenuItem<String>(
+                          value: status,
+                          child: Text(status),
+                        );
+                      }).toList(),
+                      onChanged: controller.updateSoldStatus,
+                    ),
+                  ),
+                  
                   CustomSpacer(height: 32),
                   
                   // Action Buttons
@@ -399,7 +400,7 @@ class UpdateProductScreen extends StatelessWidget {
                       Expanded(
                         child: CustomOutlineButton(
                           text: 'Cancel',
-                          onPressed: () => Get.back(),
+                          onPressed: () => Navigator.of(context).pop(),
                         ),
                       ),
                       CustomSpacer(width: 16),

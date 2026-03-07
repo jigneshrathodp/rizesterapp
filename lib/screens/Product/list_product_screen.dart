@@ -9,7 +9,10 @@ class ProductListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<ProductListController>();
+    // Ensure controller is initialized and registered
+    final controller = Get.isRegistered<ProductListController>()
+        ? Get.find<ProductListController>()
+        : Get.put(ProductListController());
     
     return Scaffold(
       backgroundColor: Colors.white,

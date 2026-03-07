@@ -331,16 +331,7 @@ class _UpdateCategoryScreenState extends State<UpdateCategoryScreen> {
       colorText: Colors.white,
       duration: const Duration(seconds: 3),
     );
-    Get.offAll(() => const MainScreen());
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (!Get.isRegistered<MainScreenController>()) {
-        try {
-          Get.put(MainScreenController());
-        } catch (_) {}
-      }
-      final main = Get.find<MainScreenController>();
-      main.onItemTapped(3);
-    });
+    Navigator.of(context).pop();
   }
   
   Future<void> _loadCategory() async {

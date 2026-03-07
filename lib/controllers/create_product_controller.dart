@@ -25,6 +25,7 @@ class CreateProductController extends GetxController {
   final categories = <CategoryHelper>[].obs;
   final jewelleryCategories = ['Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Pendants', 'Chains', 'Bangles', 'Anklets'].obs;
   final selectedStatus = 'Active'.obs;
+  final selectedSoldStatus = 'Unsold'.obs;
   final forSale = true.obs;
   final selectedImage = Rx<XFile?>(null);
   final isLoading = false.obs;
@@ -94,6 +95,12 @@ class CreateProductController extends GetxController {
   
   void toggleForSale(bool? value) {
     forSale.value = value ?? false;
+  }
+  
+  void updateSoldStatus(String? value) {
+    if (value != null) {
+      selectedSoldStatus.value = value;
+    }
   }
   
   Future<void> pickImage() async {

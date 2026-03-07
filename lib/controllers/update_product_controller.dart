@@ -27,6 +27,7 @@ class UpdateProductController extends GetxController {
   // Reactive variables
   final categories = <CategoryHelper>[].obs;
   final selectedStatus = 'Active'.obs;
+  final selectedSoldStatus = 'Unsold'.obs;
   final forSale = true.obs;
   final selectedImage = Rx<XFile?>(null);
   final isLoading = false.obs;
@@ -100,12 +101,8 @@ class UpdateProductController extends GetxController {
         
         // Set category
         if (product.categoryId != null) {
-          // Don't set text initially, let the dropdown handle it
-          selectedCategory.value = CategoryHelper(
-            id: int.parse(product.categoryId!),
-            name: '', // Will be updated when categories are loaded
-          );
-          // Don't set categoryController.text initially to avoid dropdown conflict
+          // Set initial category controller text to show loading state
+          categoryController.text = 'Loading...';
           
           // Update category name when categories are loaded
           ever(categories, (_) {
@@ -115,8 +112,23 @@ class UpdateProductController extends GetxController {
             if (category != null) {
               selectedCategory.value = category;
               categoryController.text = category.name;
+            } else {
+              categoryController.text = '';
             }
           });
+          
+          // Also try to set immediately if categories are already loaded
+          if (categories.isNotEmpty) {
+            final category = categories.firstWhereOrNull(
+              (cat) => cat.id.toString() == product.categoryId,
+            );
+            if (category != null) {
+              selectedCategory.value = category;
+              categoryController.text = category.name;
+            } else {
+              categoryController.text = '';
+            }
+          }
         }
       }
     } catch (e) {
@@ -146,6 +158,12 @@ class UpdateProductController extends GetxController {
   void updateStatus(String? value) {
     if (value != null) {
       selectedStatus.value = value;
+    }
+  }
+  
+  void updateSoldStatus(String? value) {
+    if (value != null) {
+      selectedSoldStatus.value = value;
     }
   }
   
@@ -216,7 +234,7 @@ class UpdateProductController extends GetxController {
         
         if (result.status == true) {
           SnackbarService.showSuccess(result.message ?? 'Product updated successfully');
-          Get.back();
+          Navigator.of(Get.context!).pop();
         } else {
           SnackbarService.showError(result.message ?? 'Failed to update product');
         }

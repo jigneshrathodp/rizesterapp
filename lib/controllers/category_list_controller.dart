@@ -179,11 +179,15 @@ class CategoryListController extends GetxController {
   }
   
   void navigateToCreateCategory() {
-    Get.to(() => const CreateCategoryScreen(showAppBar: true));
+    Get.to(() => const CreateCategoryScreen(showAppBar: true))?.then((_) {
+      refreshCategories();
+    });
   }
   
   void navigateToUpdateCategory(Map<String, dynamic> categoryData) {
-    Get.to(() => UpdateCategoryScreen(categoryData: categoryData, showAppBar: true));
+    Get.to(() => UpdateCategoryScreen(categoryData: categoryData, showAppBar: true))?.then((_) {
+      refreshCategories();
+    });
   }
   
   void deleteCategory(int id) async {
